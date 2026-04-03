@@ -1,0 +1,69 @@
+#include <iostream>
+#include <getopt.h>    
+#include <libinput.h>     
+#include <linux/input-event-codes.h> 
+#include <wayland-server-core.h>
+
+// https://github.com/swaywm/wlroots/issues/682
+// stooopid devs make shit not work in c++ so we have to do some class and namespace shit FUCK YOU
+
+#define class WLROOTS
+#define namespace KILLYOURSELF
+#define static
+
+extern "C" {
+    #include <wlr/backend.h>
+    #include <wlr/render/allocator.h>
+    #include <wlr/render/wlr_renderer.h>
+    #include <wlr/types/wlr_cursor.h>
+    #include <wlr/types/wlr_compositor.h>
+    #include <wlr/types/wlr_data_device.h>
+    #include <wlr/types/wlr_input_device.h>
+    #include <wlr/types/wlr_keyboard.h>
+    #include <wlr/types/wlr_output.h>
+    #include <wlr/types/wlr_output_layout.h>
+    #include <wlr/types/wlr_pointer.h>
+    #include <wlr/types/wlr_scene.h>
+    #include <wlr/types/wlr_seat.h>
+    #include <wlr/types/wlr_subcompositor.h>
+    #include <wlr/types/wlr_xcursor_manager.h>
+    #include <wlr/types/wlr_xdg_shell.h>
+    #include <wlr/util/log.h>
+    #include <xkbcommon/xkbcommon.h>
+}
+
+#undef class
+#undef namespace
+#undef static
+
+
+void fwm_log(const std::string& message);
+
+//structs
+
+struct fwm_server {
+    struct wl_display *wl_display;
+    struct wlr_backend *backend;
+};
+
+int main(int argc, char **argv){
+    struct fwm_server server;
+
+    server.wl_display = wl_display_create();
+
+    server.backend = wlr_backend_autocreate(wl_display_get_event_loop(server.wl_display), NULL);
+	if (server.backend == NULL) {
+		fwm_log("failed to create wlr_backend");
+		return 1;
+	}
+
+    wl_display_run(server.wl_display);
+    wl_display_destroy(server.wl_display);
+
+    return 0;
+
+}
+
+void fwm_log(const std::string& message) {
+    std::cout << "[LOG] " << message << std::endl;
+}
