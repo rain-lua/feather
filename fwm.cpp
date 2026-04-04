@@ -362,7 +362,7 @@ static void output_frame(struct wl_listener *listener, void *data){
 	struct wlr_scene *scene = output->server->scene;
 
 	//for shits n giggles
-
+	
 	t += 0.02f;
     float color[4];
     color[0] = (std::sin(t) + 1.0f) / 2.0f;    
