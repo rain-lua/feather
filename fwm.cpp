@@ -41,10 +41,27 @@ extern "C" {
 struct fwm_server {
     struct wl_display *wl_display;
     struct wlr_backend *backend;
+	struct wlr_renderer *renderer;
+	struct wlr_allocator *allocator;
+	struct wlr_scene *scene;
+	struct wlr_scene_output_layout *scene_layout;
+
+	struct wlr_output_layout *output_layout;
+	struct wl_list outputs;
+	struct wl_listener new_output;
 
     struct wlr_seat *seat;
 	struct wl_listener new_input;
     struct wl_list keyboards;
+};
+
+struct fwm_output {
+	struct wl_list link;
+	struct fwm_server *server;
+	struct wlr_output *wlr_output;
+	struct wl_listener frame;
+	struct wl_listener request_state;
+	struct wl_listener destroy;
 };
 
 struct fwm_kb {
@@ -65,11 +82,15 @@ static void server_new_input(struct wl_listener *listener, void *data);
 static void keyboard_handle_destroy(struct wl_listener *listener, void *data);
 static void keyboard_handle_key(struct wl_listener *listener, void *data);
 static void keyboard_handle_modifiers(struct wl_listener *listener, void *data);
+static void server_new_output(struct wl_listener *listener, void *data);
+static void output_destroy(struct wl_listener *listener, void *data);
+static void output_request_state(struct wl_listener *listener, void *data);
+static void output_frame(struct wl_listener *listener, void *data);
 
 //main
 
 int main(int argc, char **argv){
-    struct fwm_server server;
+    struct fwm_server server = {0};
 
     server.wl_display = wl_display_create();
 
@@ -78,6 +99,29 @@ int main(int argc, char **argv){
 		fwm_log("failed to create wlr_backend");
 		return 1;
 	}
+
+	server.renderer = wlr_renderer_autocreate(server.backend);
+	if (server.renderer == NULL) {
+		fwm_log("failed to create wlr_renderer");
+		return 1;
+	}
+
+	wlr_renderer_init_wl_display(server.renderer, server.wl_display);
+
+	server.allocator = wlr_allocator_autocreate(server.backend,
+		server.renderer);
+	if (server.allocator == NULL) {
+		fwm_log("failed to create wlr_allocator");
+		return 1;
+	}
+
+	server.output_layout = wlr_output_layout_create(server.wl_display);
+	wl_list_init(&server.outputs);
+	server.new_output.notify = server_new_output;
+	wl_signal_add(&server.backend->events.new_output, &server.new_output);
+
+	server.scene = wlr_scene_create();
+	server.scene_layout = wlr_scene_attach_output_layout(server.scene, server.output_layout);
 
     wl_list_init(&server.keyboards);
 	server.new_input.notify = server_new_input;
@@ -102,12 +146,14 @@ int main(int argc, char **argv){
     wl_display_destroy_clients(server.wl_display);
 
 	wl_list_remove(&server.new_input.link);
+	wl_list_remove(&server.new_output.link);
 
 	wlr_backend_destroy(server.backend);
+	wlr_allocator_destroy(server.allocator);
+	wlr_renderer_destroy(server.renderer);
 	wl_display_destroy(server.wl_display);
 
     return 0;
-
 }
 
 static void fwm_log(const char* fmt, ...) {
@@ -231,4 +277,84 @@ static void keyboard_handle_modifiers(struct wl_listener *listener, void *data){
 
 	wlr_seat_keyboard_notify_modifiers(keyboard->server->seat,
 		&keyboard->wlr_keyboard->modifiers);
+}
+
+
+static void server_new_output(struct wl_listener *listener, void *data){
+	struct fwm_server *server =
+		wl_container_of(listener, server, new_output);
+	struct wlr_output *wlr_output = static_cast<struct wlr_output *>(data);
+
+	fwm_log("new output");
+
+	wlr_output_init_render(wlr_output, server->allocator, server->renderer);
+
+	struct wlr_output_state state;
+	wlr_output_state_init(&state);
+	wlr_output_state_set_enabled(&state, true);
+
+	struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
+	if (mode != NULL) {
+		wlr_output_state_set_mode(&state, mode);
+	}
+
+	wlr_output_commit_state(wlr_output, &state);
+	wlr_output_state_finish(&state);
+
+	struct fwm_output *output = (fwm_output *)calloc(1, sizeof(*output));
+	output->wlr_output = wlr_output;
+	output->server = server;
+
+	output->frame.notify = output_frame;
+	wl_signal_add(&wlr_output->events.frame, &output->frame);
+
+	output->request_state.notify = output_request_state;
+	wl_signal_add(&wlr_output->events.request_state, &output->request_state);
+
+	output->destroy.notify = output_destroy;
+	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
+
+	wl_list_insert(&server->outputs, &output->link);
+
+	struct wlr_output_layout_output *l_output = wlr_output_layout_add_auto(server->output_layout,
+		wlr_output);
+	struct wlr_scene_output *scene_output = wlr_scene_output_create(server->scene, wlr_output);
+	wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
+}
+
+static void output_destroy(struct wl_listener *listener, void *data){
+	struct fwm_output *output = wl_container_of(listener, output, destroy);
+
+	fwm_log("output destroy");
+
+	wl_list_remove(&output->frame.link);
+	wl_list_remove(&output->request_state.link);
+	wl_list_remove(&output->destroy.link);
+	wl_list_remove(&output->link);
+	free(output);
+}
+
+static void output_request_state(struct wl_listener *listener, void *data){
+	fwm_log("output request");
+
+	struct fwm_output *output = wl_container_of(listener, output, request_state);
+	const struct wlr_output_event_request_state *event = static_cast<wlr_output_event_request_state *>(data);
+	wlr_output_commit_state(output->wlr_output, event->state);
+}
+
+
+static void output_frame(struct wl_listener *listener, void *data){
+	fwm_log("output frame");
+
+	struct fwm_output *output = wl_container_of(listener, output, frame);
+	struct wlr_scene *scene = output->server->scene;
+
+	struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
+		scene, output->wlr_output);
+
+	wlr_scene_output_commit(scene_output, NULL);
+
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	wlr_scene_output_send_frame_done(scene_output, &now);
 }
