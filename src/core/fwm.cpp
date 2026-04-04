@@ -57,6 +57,8 @@ int main(int argc, char **argv){
         wl_display_destroy(server.wl_display);
         return 1;
     }
+    
+    setenv("WAYLAND_DISPLAY", socket, true);
 
     log_info("fwm running on WAYLAND_DISPLAY=%s", socket);
     wl_display_run(server.wl_display);
