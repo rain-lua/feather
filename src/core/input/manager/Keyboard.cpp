@@ -38,10 +38,11 @@ void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data){
 }
 
 static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym){
-    log_debug("alt");
+    log_debug("super");
+
     switch (sym) {
     case XKB_KEY_Escape:
-        log_debug("alt+esc");
+        log_debug("super+esc");
         wl_display_terminate(server->m_Display);
         break;
     default:
@@ -62,7 +63,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data){
 
     bool handled = false;
     uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->m_WlrKeyboard);
-    if ((modifiers & WLR_MODIFIER_ALT) && event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+    if ((modifiers & WLR_MODIFIER_LOGO) && event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
         for (int i = 0; i < nsyms; i++) {
             handled = HandleKeybinding(server, syms[i]);
         }
