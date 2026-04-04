@@ -101,6 +101,8 @@ int main(int argc, char **argv){
 
     wl_display_destroy_clients(server.wl_display);
 
+	wl_list_remove(&server.new_input.link);
+
 	wlr_backend_destroy(server.backend);
 	wl_display_destroy(server.wl_display);
 
