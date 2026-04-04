@@ -8,10 +8,10 @@
 #include <wayland-server-core.h>
 
 // https://github.com/swaywm/wlroots/issues/682
-// stooopid devs make shit not work in c++ so we have to do some class and namespace shit FUCK YOU
+// shit doesnt compile in c++ so we have to do some class and namespace shit
 
-#define class WLROOTS
-#define namespace KILLYOURSELF
+#define class wlroots_class
+#define namespace wlroots_namespace
 #define static
 
 extern "C" {

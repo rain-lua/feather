@@ -1,8 +1,6 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <string>
-
 enum class LogLevel {
     DEBUG,
     INFO,
