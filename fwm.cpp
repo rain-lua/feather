@@ -36,6 +36,10 @@ extern "C" {
 #undef namespace
 #undef static
 
+//for shits n giggles
+struct wlr_scene_rect *bg_rect;
+float t = 0.0f;
+
 //structs
 
 struct fwm_server {
@@ -320,6 +324,15 @@ static void server_new_output(struct wl_listener *listener, void *data){
 		wlr_output);
 	struct wlr_scene_output *scene_output = wlr_scene_output_create(server->scene, wlr_output);
 	wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
+
+	//for shits n giggles
+
+	int width = mode ? mode->width : 1920;
+	int height = mode ? mode->height : 1080;
+
+	float red[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+	bg_rect = wlr_scene_rect_create(&server->scene->tree, width, height, red);
+	wlr_scene_node_set_position(&bg_rect->node, 0, 0);
 }
 
 static void output_destroy(struct wl_listener *listener, void *data){
@@ -342,12 +355,22 @@ static void output_request_state(struct wl_listener *listener, void *data){
 	wlr_output_commit_state(output->wlr_output, event->state);
 }
 
-
 static void output_frame(struct wl_listener *listener, void *data){
 	fwm_log("output frame");
 
 	struct fwm_output *output = wl_container_of(listener, output, frame);
 	struct wlr_scene *scene = output->server->scene;
+
+	//for shits n giggles
+
+	t += 0.02f;
+    float color[4];
+    color[0] = (std::sin(t) + 1.0f) / 2.0f;    
+    color[1] = (std::sin(t + 2.0f) + 1.0f) / 2.0f; 
+    color[2] = (std::sin(t + 4.0f) + 1.0f) / 2.0f; 
+    color[3] = 1.0f;                              
+
+    wlr_scene_rect_set_color(bg_rect, color);
 
 	struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
 		scene, output->wlr_output);
