@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdarg>
-#include <cstdio>
 
 enum class LogLevel {
     DEBUG,
