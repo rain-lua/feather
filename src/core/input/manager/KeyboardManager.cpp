@@ -10,8 +10,8 @@ void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *de
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
     std::string layout = server->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
-    int rate_of_repeat = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
-    int delay_of_repeat = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
+    int repeat_rate = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
+    int repeat_delay = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
 
     xkb_rule_names names;
     memset(&names, 0, sizeof(names));
@@ -23,7 +23,7 @@ void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *de
     xkb_keymap_unref(keymap);
     xkb_context_unref(context);
 
-    wlr_keyboard_set_repeat_info(wlr_keyboard, rate_of_repeat, delay_of_repeat);
+    wlr_keyboard_set_repeat_info(wlr_keyboard, repeat_rate, repeat_delay);
 
     keyboard->m_Modifiers.notify = KeyboardManager::HandleKeyboardModifiers;
     wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->m_Modifiers);
