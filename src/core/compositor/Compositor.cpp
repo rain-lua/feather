@@ -4,11 +4,7 @@
 #include "../monitor/Monitor.hpp"
 #include "../input/InputManager.hpp"
 
-Compositor::Compositor() : 
-    m_Display(nullptr), m_Backend(nullptr), m_Renderer(nullptr), 
-    m_Allocator(nullptr), m_Scene(nullptr), m_SceneLayout(nullptr), 
-    m_OutputLayout(nullptr), m_Seat(nullptr) {
-
+Compositor::Compositor() {
     m_Display = wl_display_create();
     m_Backend = wlr_backend_autocreate(wl_display_get_event_loop(m_Display), nullptr);
     m_Renderer = wlr_renderer_autocreate(m_Backend);
