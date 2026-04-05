@@ -20,6 +20,10 @@ Compositor::Compositor() {
     m_Scene = wlr_scene_create();
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
     m_Seat = wlr_seat_create(m_Display, "seat0");
+
+    m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
+    m_ConfigManager->EnsureUserConfigExists();
+    m_ConfigManager->Load(std::filesystem::path(std::getenv("HOME")) / ".config/feather/feather.lua");
 }
 
 bool Compositor::Initialize() {
@@ -37,7 +41,7 @@ bool Compositor::Initialize() {
     setenv("WAYLAND_DISPLAY", socket, true);
 
     log_info("========================================");
-    log_info(" fwm initialized");
+    log_info(" feather initialized");
     log_info(" socket: %s", socket);
     log_info("========================================");
 
@@ -49,7 +53,7 @@ void Compositor::Run() {
 }
 
 void Compositor::Cleanup() {
-    log_info("exiting fwm...");
+    log_info("exiting feather...");
 
     wl_display_destroy_clients(m_Display);
     wl_list_remove(&m_NewInput.link);

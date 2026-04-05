@@ -1,6 +1,7 @@
 #include "KeyboardManager.hpp"
 #include "../../compositor/Compositor.hpp"
 #include "../../../debug/Debug.hpp"
+#include "../../util/Util.hpp"
 
 void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *device) {
     wlr_keyboard *wlr_keyboard = wlr_keyboard_from_input_device(device);
@@ -8,12 +9,21 @@ void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *de
     keyboard->m_Server = server;
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
+    std::string layout = server->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
+    int rate_of_repeat = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
+    int delay_of_repeat = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
+
+    xkb_rule_names names;
+    memset(&names, 0, sizeof(names));
+    names.layout = layout.c_str(); 
+
     xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-    xkb_keymap *keymap = xkb_keymap_new_from_names(context, NULL, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    xkb_keymap *keymap = xkb_keymap_new_from_names(context, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
     wlr_keyboard_set_keymap(wlr_keyboard, keymap);
     xkb_keymap_unref(keymap);
     xkb_context_unref(context);
-    wlr_keyboard_set_repeat_info(wlr_keyboard, 25, 600);
+
+    wlr_keyboard_set_repeat_info(wlr_keyboard, rate_of_repeat, delay_of_repeat);
 
     keyboard->m_Modifiers.notify = KeyboardManager::HandleKeyboardModifiers;
     wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->m_Modifiers);
@@ -58,7 +68,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {
     wlr_keyboard_key_event *event = static_cast<wlr_keyboard_key_event *>(data);
     wlr_seat *seat = server->m_Seat;
 
-    uint32_t keycode = event->keycode + 8;
+    uint32_t keycode = toXKBKeycode(event->keycode);
     const xkb_keysym_t *syms;
     int nsyms = xkb_state_key_get_syms(keyboard->m_WlrKeyboard->xkb_state, keycode, &syms);
 

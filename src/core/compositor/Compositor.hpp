@@ -2,6 +2,7 @@
 #define COMPOSITOR_H
 
 #include "../../include/Defines.hpp"
+#include "../../config/ConfigManager.hpp"
 
 class Compositor {
 public:
@@ -24,6 +25,8 @@ public:
     wl_listener m_NewOutput;
     wl_listener m_NewInput;
     wlr_seat *m_Seat;
+
+    std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;;
 };
 
 #endif
