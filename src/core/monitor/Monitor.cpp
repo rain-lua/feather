@@ -2,7 +2,7 @@
 #include "../compositor/Compositor.hpp"
 #include "../../debug/Debug.hpp"
 
-void MonitorManager::HandleNewOutput(wl_listener *listener, void *data){
+void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
     Compositor *server = wl_container_of(listener, server, m_NewOutput);
     wlr_output *wlr_output = static_cast<struct wlr_output *>(data);
     log_info("--- New Monitor Connected ---");
@@ -41,7 +41,7 @@ void MonitorManager::HandleNewOutput(wl_listener *listener, void *data){
     wlr_scene_output_layout_add_output(server->m_SceneLayout, l_output, scene_output);
 }
 
-void MonitorManager::HandleOutputDestroy(wl_listener *listener, void *data){
+void MonitorManager::HandleOutputDestroy(wl_listener *listener, void *data) {
     Monitor *monitor = wl_container_of(listener, monitor, m_Destroy);
     log_info("--- Monitor Disconnected ---");
     wl_list_remove(&monitor->m_Frame.link);
@@ -51,7 +51,7 @@ void MonitorManager::HandleOutputDestroy(wl_listener *listener, void *data){
     free(monitor);
 }
 
-void MonitorManager::HandleOutputRequestState(wl_listener *listener, void *data){
+void MonitorManager::HandleOutputRequestState(wl_listener *listener, void *data) {
     log_debug("Monitor state requested");
     Monitor *monitor = wl_container_of(listener, monitor, m_RequestState);
     const wlr_output_event_request_state *event = static_cast<wlr_output_event_request_state *>(data);

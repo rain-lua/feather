@@ -2,7 +2,7 @@
 #include "../../compositor/Compositor.hpp"
 #include "../../../debug/Debug.hpp"
 
-void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *device){
+void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *device) {
     wlr_keyboard *wlr_keyboard = wlr_keyboard_from_input_device(device);
     Keyboard *keyboard = (Keyboard *)calloc(1, sizeof(*keyboard));
     keyboard->m_Server = server;
@@ -28,7 +28,7 @@ void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *de
     wl_list_insert(&server->m_Keyboards, &keyboard->m_Link);
 }
 
-void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data){
+void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Destroy);
     wl_list_remove(&keyboard->m_Modifiers.link);
     wl_list_remove(&keyboard->m_Key.link);
@@ -51,7 +51,7 @@ static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym){
     return true;
 }
 
-void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data){
+void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Key);
     Compositor *server = keyboard->m_Server;
     wlr_keyboard_key_event *event = static_cast<wlr_keyboard_key_event *>(data);
@@ -75,7 +75,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data){
     }
 }
 
-void KeyboardManager::HandleKeyboardModifiers(wl_listener *listener, void *data){
+void KeyboardManager::HandleKeyboardModifiers(wl_listener *listener, void *data) {
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Modifiers);
     wlr_seat_set_keyboard(keyboard->m_Server->m_Seat, keyboard->m_WlrKeyboard);
     wlr_seat_keyboard_notify_modifiers(keyboard->m_Server->m_Seat, &keyboard->m_WlrKeyboard->modifiers);
