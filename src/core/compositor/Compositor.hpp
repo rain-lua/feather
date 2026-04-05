@@ -26,7 +26,7 @@ public:
     wl_listener m_NewInput;
     wlr_seat *m_Seat;
 
-    std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;;
+    std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;
 };
 
 #endif
