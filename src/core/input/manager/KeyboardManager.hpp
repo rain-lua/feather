@@ -5,14 +5,6 @@
 
 class Compositor;
 
-class KeyboardManager {
-public:
-    static void HandleNewKeyboard(Compositor *server, wlr_input_device *device);
-    static void HandleKeyboardDestroy(wl_listener *listener, void *data);
-    static void HandleKeyboardKey(wl_listener *listener, void *data);
-    static void HandleKeyboardModifiers(wl_listener *listener, void *data);
-};
-
 struct Keyboard {
     wl_list m_Link;
     Compositor *m_Server;
@@ -20,6 +12,14 @@ struct Keyboard {
     wl_listener m_Modifiers;
     wl_listener m_Key;
     wl_listener m_Destroy;
+};
+
+class KeyboardManager {
+public:
+    static void HandleNewKeyboard(Compositor *server, wlr_input_device *device);
+    static void HandleKeyboardDestroy(wl_listener *listener, void *data);
+    static void HandleKeyboardKey(wl_listener *listener, void *data);
+    static void HandleKeyboardModifiers(wl_listener *listener, void *data);
 };
 
 #endif
