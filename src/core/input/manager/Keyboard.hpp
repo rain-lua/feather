@@ -13,8 +13,7 @@ public:
     static void HandleKeyboardModifiers(wl_listener *listener, void *data);
 };
 
-class Keyboard {
-public:
+struct Keyboard {
     wl_list m_Link;
     Compositor *m_Server;
     wlr_keyboard *m_WlrKeyboard;

@@ -5,8 +5,7 @@
 
 class Compositor;
 
-class Monitor {
-public:
+struct Monitor {
     wl_list m_Link;
     Compositor *m_Server;
     wlr_output *m_WlrOutput;
