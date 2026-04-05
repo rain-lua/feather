@@ -10,7 +10,7 @@ CXXFLAGS := -g -Werror -DWLR_USE_UNSTABLE $(CFLAGS_PKG_CONFIG) -Isrc/include -Is
 SRC := $(shell find src -name '*.cpp')
 OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))
 
-all: build fwm
+all: build feather
 
 build:
 	mkdir -p build
@@ -19,8 +19,8 @@ build/%.o: src/%.cpp
 	mkdir -p $(dir $@)
 	$(CXX) -c $< $(CXXFLAGS) -o $@
 
-fwm: $(OBJ)
-	$(CXX) $^ $(CXXFLAGS) $(LIBS) -o build/fwm
+feather: $(OBJ)
+	$(CXX) $^ $(CXXFLAGS) $(LIBS) -o build/feather
 
 clean:
 	rm -rf build

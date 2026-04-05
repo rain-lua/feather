@@ -1,4 +1,4 @@
-#include "Monitor.hpp"
+#include "MonitorManager.hpp"
 #include "../compositor/Compositor.hpp"
 #include "../../debug/Debug.hpp"
 

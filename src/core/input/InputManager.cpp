@@ -1,6 +1,6 @@
 #include "InputManager.hpp"
 #include "../compositor/Compositor.hpp"
-#include "manager/Keyboard.hpp"
+#include "manager/KeyboardManager.hpp"
 
 void InputManager::HandleNewInput(wl_listener *listener, void *data) {
     Compositor *server = wl_container_of(listener, server, m_NewInput);

@@ -1,7 +1,7 @@
 #include "Compositor.hpp"
 #include "../../include/Defines.hpp"
 #include "../../debug/Debug.hpp"
-#include "../output/Monitor.hpp"
+#include "../output/MonitorManager.hpp"
 #include "../input/InputManager.hpp"
 
 Compositor::Compositor() {
