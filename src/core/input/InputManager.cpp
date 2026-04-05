@@ -1,6 +1,7 @@
 #include "InputManager.hpp"
-#include "../compositor/Compositor.hpp"
 #include "manager/KeyboardManager.hpp"
+#include "../compositor/Compositor.hpp"
+#include "../../debug/Debug.hpp"
 
 void InputManager::HandleNewInput(wl_listener *listener, void *data) {
     Compositor *server = wl_container_of(listener, server, m_NewInput);
@@ -8,6 +9,7 @@ void InputManager::HandleNewInput(wl_listener *listener, void *data) {
 
     switch (device->type) {
         case WLR_INPUT_DEVICE_KEYBOARD:
+            log_info("--- New Keyboard Connected ---");
             KeyboardManager::HandleNewKeyboard(server, device);
             break;
         default:

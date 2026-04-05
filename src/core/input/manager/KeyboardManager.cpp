@@ -29,6 +29,7 @@ void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *de
 }
 
 void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
+    log_info("--- Keyboard Disconnected ---");
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Destroy);
     wl_list_remove(&keyboard->m_Modifiers.link);
     wl_list_remove(&keyboard->m_Key.link);
