@@ -16,14 +16,24 @@ Compositor::Compositor() {
 
     wl_list_init(&m_Outputs);
     wl_list_init(&m_Keyboards);
+    wl_list_init(&m_Pointers);
+
+    m_Cursor = wlr_cursor_create();
+    wlr_cursor_attach_output_layout(m_Cursor, m_OutputLayout);
+
+    const char* theme = getenv("XCURSOR_THEME");
+    if (!theme) theme = "default";
+
+    const char* sizeStr = getenv("XCURSOR_SIZE");
+    int size = sizeStr ? atoi(sizeStr) : 24;
+
+    m_CursorManager = wlr_xcursor_manager_create(theme, size);
 
     m_Scene = wlr_scene_create();
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
     m_Seat = wlr_seat_create(m_Display, "seat0");
 
     m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
-    m_ConfigManager->EnsureUserConfigExists();
-    m_ConfigManager->Load(std::filesystem::path(std::getenv("HOME")) / ".config/feather/feather.lua");
 }
 
 bool Compositor::Initialize() {
@@ -34,6 +44,8 @@ bool Compositor::Initialize() {
 
     m_NewInput.notify = InputManager::HandleNewInput;
     wl_signal_add(&m_Backend->events.new_input, &m_NewInput);
+
+    wlr_xcursor_manager_load(m_CursorManager, 1);
 
     const char *socket = wl_display_add_socket_auto(m_Display);
     if (!socket || !wlr_backend_start(m_Backend)) return false;
@@ -59,8 +71,25 @@ void Compositor::Cleanup() {
     wl_list_remove(&m_NewInput.link);
     wl_list_remove(&m_NewOutput.link);
 
-    wlr_backend_destroy(m_Backend);
+    //for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon
+    // m_Cursor and m_CursorManager will be kept global
+    wl_list_remove(&m_CursorMotion.link);
+    wl_list_remove(&m_CursorMotionAbsolute.link);
+    wl_list_remove(&m_CursorButton.link);
+    wl_list_remove(&m_CursorAxis.link);
+    wl_list_remove(&m_CursorFrame.link);
+
+    // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this
+    wl_list_remove(&m_RequestCursor.link);
+    wl_list_remove(&m_PointerFocusChange.link);
+    wl_list_remove(&m_RequestSetSelection.link);
+
+    wlr_seat_destroy(m_Seat);
+    wlr_cursor_destroy(m_Cursor);
+    wlr_xcursor_manager_destroy(m_CursorManager);
+    wlr_scene_node_destroy(&m_Scene->tree.node);
     wlr_allocator_destroy(m_Allocator);
     wlr_renderer_destroy(m_Renderer);
+    wlr_backend_destroy(m_Backend);
     wl_display_destroy(m_Display);
 }

@@ -1,5 +1,6 @@
 #include "InputManager.hpp"
 #include "manager/KeyboardManager.hpp"
+#include "manager/MouseManager.hpp"
 #include "../compositor/Compositor.hpp"
 #include "../../debug/Debug.hpp"
 
@@ -12,6 +13,10 @@ void InputManager::HandleNewInput(wl_listener *listener, void *data) {
             log_info("--- New Keyboard Connected ---");
             KeyboardManager::HandleNewKeyboard(server, device);
             break;
+        case WLR_INPUT_DEVICE_POINTER:
+            log_info("--- New Pointer Connected ---");
+            MouseManager::HandleNewPointer(server, device);
+		    break;
         default:
             break;
     }

@@ -1,5 +1,5 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef KEYBOARD_MANAGER_H
+#define KEYBOARD_MANAGER_H
 
 #include "../../../include/Defines.hpp"
 
