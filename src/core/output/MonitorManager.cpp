@@ -5,7 +5,7 @@
 void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
     Compositor *server = wl_container_of(listener, server, m_NewOutput);
     wlr_output *wlr_output = static_cast<struct wlr_output *>(data);
-    log_info("--- New Monitor Connected ---");
+    log_info("--- New Monitor Connected: %s ---", wlr_output->name);
 
     wlr_output_init_render(wlr_output, server->m_Allocator, server->m_Renderer);
 

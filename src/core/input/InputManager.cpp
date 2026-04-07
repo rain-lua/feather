@@ -10,14 +10,15 @@ void InputManager::HandleNewInput(wl_listener *listener, void *data) {
 
     switch (device->type) {
         case WLR_INPUT_DEVICE_KEYBOARD:
-            log_info("--- New Keyboard Connected ---");
+            log_info("--- New Keyboard Connected: %s ---", device->name);
             KeyboardManager::HandleNewKeyboard(server, device);
             break;
         case WLR_INPUT_DEVICE_POINTER:
-            log_info("--- New Pointer Connected ---");
+            log_info("--- New Pointer Connected: %s ---", device->name);
             MouseManager::HandleNewPointer(server, device);
-		    break;
+            break;
         default:
+            log_info("--- New Input Device (%d): %s ---", device->type, device->name);
             break;
     }
 

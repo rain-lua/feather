@@ -84,6 +84,8 @@ void Compositor::Cleanup() {
 
     //for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon
     // m_Cursor and m_CursorManager will be kept global
+    //Hi, past me, this is future me, this actually might not be the best idea, stated above.
+    //It would be better to leave this global probably, theres a difference between a cursor (visual indicator) and a pointer (actual device)
     wl_list_remove(&m_CursorMotion.link);
     wl_list_remove(&m_CursorMotionAbsolute.link);
     wl_list_remove(&m_CursorButton.link);

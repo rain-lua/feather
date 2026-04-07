@@ -70,8 +70,38 @@ void MouseManager::ResetCursorMode(Compositor *server) {
 }
 
 void MouseManager::ProcessCursorMotion(Compositor *server, uint32_t time) {
-    //basic implementation rn
-    wlr_cursor_set_xcursor(server->m_Cursor, server->m_CursorManager, "default");
+    if (server->m_CursorMode == CURSOR_MOVE) {
+		//stuff
+        return;
+    } else if (server->m_CursorMode == CURSOR_RESIZE) {
+		//stuff
+        return;
+    }
+
+    double sx, sy;
+    struct wlr_seat *seat = server->m_Seat;
+    struct wlr_surface *surface = NULL;
+
+    struct wlr_scene_node *node = wlr_scene_node_at(&server->m_Scene->tree.node, server->m_Cursor->x, server->m_Cursor->y, &sx, &sy);
+
+    if (!node) {
+        wlr_cursor_set_xcursor(server->m_Cursor, server->m_CursorManager, "default");
+    }
+
+    if (node && node->type == WLR_SCENE_NODE_BUFFER) {
+        struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
+        struct wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
+        if (scene_surface) {
+            surface = scene_surface->surface;
+        }
+    }
+
+    if (surface) {
+        wlr_seat_pointer_notify_enter(seat, surface, sx, sy);
+        wlr_seat_pointer_notify_motion(seat, time, sx, sy);
+    } else {
+        wlr_seat_pointer_clear_focus(seat);
+    }
 }
 
 void MouseManager::HandleCursorMotion(wl_listener *listener, void *data) {
