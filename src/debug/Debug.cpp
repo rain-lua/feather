@@ -1,9 +1,12 @@
 #include "Debug.hpp"
 
-#include <iostream>
-#include <cstdio>
-#include <cstdarg>
-#include <unistd.h>
+#include <iostream> 
+#include <cstdarg>    
+#include <cstdio>     
+#include <unistd.h>  
+#include <chrono>   
+#include <iomanip>   
+#include <ctime> 
 
 #define CLR_RESET   "\033[0m"
 #define CLR_CYAN "\033[36m"
@@ -46,10 +49,23 @@ static void vlog_message(LogLevel level, const char* fmt, va_list args) {
     const char* color = use_color() ? level_to_color(level) : "";
     const char* reset = use_color() ? CLR_RESET : "";
 
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf;
+    localtime_r(&in_time_t, &tm_buf); 
+
     std::ostream& out =
         (level == LogLevel::ERROR || level == LogLevel::CRITICAL)
         ? std::cerr
         : std::cout;
+
+    if (use_color()) {
+        out << "\033[34m" 
+            << "[" << std::put_time(&tm_buf, "%H:%M:%S") << "]"
+            << "\033[0m ";
+    } else {
+        out << "[" << std::put_time(&tm_buf, "%H:%M:%S") << "] ";
+    }
 
     out << color
         << "[" << level_str << "] "
