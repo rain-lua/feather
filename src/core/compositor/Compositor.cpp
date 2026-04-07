@@ -61,7 +61,7 @@ bool Compositor::Initialize() {
     const char *socket = wl_display_add_socket_auto(m_Display);
     if (!socket || !wlr_backend_start(m_Backend)) return false;
 
-    setenv("WAYLAND_DISPLAY", socket, true);
+    setenv("WAYLAND_DISPLAY", socket, 1);
 
     log_info("========================================");
     log_info(" feather initialized");
