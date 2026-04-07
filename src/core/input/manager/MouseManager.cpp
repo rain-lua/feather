@@ -34,7 +34,6 @@ void MouseManager::HandlePointerDestroy(wl_listener *listener, void *data) {
 
     Pointer *pointer = wl_container_of(listener, pointer, m_Destroy);
 
-	
     wl_list_remove(&pointer->m_Destroy.link);
     wl_list_remove(&pointer->m_Link);
 

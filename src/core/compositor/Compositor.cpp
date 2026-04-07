@@ -1,4 +1,5 @@
 #include "Compositor.hpp"
+#include "WindowManager.hpp"
 #include "../../include/Defines.hpp"
 #include "../../debug/Debug.hpp"
 #include "../output/MonitorManager.hpp"
@@ -12,13 +13,18 @@ Compositor::Compositor() {
     wlr_renderer_init_wl_display(m_Renderer, m_Display);
 
     m_Allocator = wlr_allocator_autocreate(m_Backend, m_Renderer);
+    wlr_compositor_create(m_Display, 5, m_Renderer);
+	wlr_subcompositor_create(m_Display);
+	wlr_data_device_manager_create(m_Display);
     m_OutputLayout = wlr_output_layout_create(m_Display);
 
     wl_list_init(&m_Outputs);
     wl_list_init(&m_Keyboards);
     wl_list_init(&m_Pointers);
+    wl_list_init(&m_Windows);
 
     m_Cursor = wlr_cursor_create();
+
     wlr_cursor_attach_output_layout(m_Cursor, m_OutputLayout);
 
     const char* theme = getenv("XCURSOR_THEME");
@@ -33,6 +39,8 @@ Compositor::Compositor() {
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
     m_Seat = wlr_seat_create(m_Display, "seat0");
 
+    m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
+
     m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
 }
 
@@ -44,6 +52,9 @@ bool Compositor::Initialize() {
 
     m_NewInput.notify = InputManager::HandleNewInput;
     wl_signal_add(&m_Backend->events.new_input, &m_NewInput);
+
+    m_NewWindow.notify = WindowManager::HandleNewWindow;
+    wl_signal_add(&m_XDGShell->events.new_toplevel, &m_NewWindow);
 
     wlr_xcursor_manager_load(m_CursorManager, 1);
 
