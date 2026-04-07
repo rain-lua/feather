@@ -4,6 +4,7 @@
 #include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
 #include "../input/manager/MouseManager.hpp"
+#include "WindowManager.hpp"
 class Compositor {
 public:
     Compositor();
@@ -20,22 +21,26 @@ public:
     wlr_scene_output_layout *m_SceneLayout;
     wlr_output_layout *m_OutputLayout;
 
-	struct wlr_cursor *m_Cursor;
-	struct wlr_xcursor_manager *m_CursorManager;
-	struct wl_listener m_CursorMotion;
-	struct wl_listener m_CursorMotionAbsolute;
-	struct wl_listener m_CursorButton;
-	struct wl_listener m_CursorAxis;
-	struct wl_listener m_CursorFrame;
+    wlr_xdg_shell *m_XDGShell;
+	wl_listener m_NewWindow;
+	wl_list m_Windows;
+
+	wlr_cursor *m_Cursor;
+	wlr_xcursor_manager *m_CursorManager;
+	wl_listener m_CursorMotion;
+	wl_listener m_CursorMotionAbsolute;
+	wl_listener m_CursorButton;
+	wl_listener m_CursorAxis;
+	wl_listener m_CursorFrame;
 
     wl_list m_Outputs;
     wl_list m_Keyboards;
     wl_list m_Pointers;
 
-    struct wl_listener m_RequestCursor;
-	struct wl_listener m_PointerFocusChange;
-	struct wl_listener m_RequestSetSelection;
-    enum CursorMode m_CursorMode;
+    wl_listener m_RequestCursor;
+	wl_listener m_PointerFocusChange;
+	wl_listener m_RequestSetSelection;
+    CursorMode m_CursorMode;
     wl_listener m_NewOutput;
     wl_listener m_NewInput;
     wlr_seat *m_Seat;

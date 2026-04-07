@@ -56,6 +56,9 @@ static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym){
         log_debug("super+esc");
         wl_display_terminate(server->m_Display);
         break;
+    case XKB_KEY_q:
+        log_debug("super+Q");
+        spawn("kitty");
     default:
         return false;
     }
