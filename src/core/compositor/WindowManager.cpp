@@ -89,10 +89,6 @@ void WindowManager::HandleWindowDestroy(wl_listener *listener, void *data) {
 	wl_list_remove(&window->m_Unmap.link);
 	wl_list_remove(&window->m_Commit.link);
 	wl_list_remove(&window->m_Destroy.link);
-	wl_list_remove(&window->m_RequestMove.link);
-	wl_list_remove(&window->m_RequestResize.link);
-	wl_list_remove(&window->m_RequestMaximize.link);
-	wl_list_remove(&window->m_RequestFullscreen.link);
 
 	free(window);
 }
