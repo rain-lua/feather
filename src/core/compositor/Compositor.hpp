@@ -3,8 +3,9 @@
 
 #include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
-#include "../input/manager/MouseManager.hpp"
-#include "WindowManager.hpp"
+#include "../input/managers/MouseManager.hpp"
+#include "./managers/WindowManager.hpp"
+#include "./managers/DecorationManager.hpp"
 class Compositor {
 public:
     Compositor();
@@ -25,6 +26,8 @@ public:
 	wl_listener m_NewWindow;
 	wl_list m_Windows;
 
+    Window *m_FocusedWindow;
+
 	wlr_cursor *m_Cursor;
 	wlr_xcursor_manager *m_CursorManager;
 	wl_listener m_CursorMotion;
@@ -44,6 +47,9 @@ public:
     wl_listener m_NewOutput;
     wl_listener m_NewInput;
     wlr_seat *m_Seat;
+
+    wl_listener m_NewDecoration;
+    wlr_xdg_decoration_manager_v1 *m_DecorationManager;
 
     std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;
 };

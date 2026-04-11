@@ -1,6 +1,6 @@
 #include "InputManager.hpp"
-#include "manager/KeyboardManager.hpp"
-#include "manager/MouseManager.hpp"
+#include "managers/KeyboardManager.hpp"
+#include "managers/MouseManager.hpp"
 #include "../compositor/Compositor.hpp"
 #include "../../debug/Debug.hpp"
 
