@@ -1,5 +1,5 @@
-#ifndef MONITOR_H
-#define MONITOR_H
+#ifndef MONITOR_MANAGER_H
+#define MONITOR_MANAGER_H
 
 #include "../../include/Defines.hpp"
 

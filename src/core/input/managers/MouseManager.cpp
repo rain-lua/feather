@@ -79,10 +79,10 @@ void MouseManager::ProcessCursorMotion(Compositor *server, uint32_t time) {
     }
 
     double sx, sy;
-    struct wlr_seat *seat = server->m_Seat;
-    struct wlr_surface *surface = NULL;
+    wlr_seat *seat = server->m_Seat;
+    wlr_surface *surface = NULL;
 
-    struct wlr_scene_node *node = wlr_scene_node_at(&server->m_Scene->tree.node, server->m_Cursor->x, server->m_Cursor->y, &sx, &sy);
+    wlr_scene_node *node = wlr_scene_node_at(&server->m_Scene->tree.node, server->m_Cursor->x, server->m_Cursor->y, &sx, &sy);
 
     if (!node) {
         wlr_cursor_set_xcursor(server->m_Cursor, server->m_CursorManager, "default");
@@ -115,14 +115,14 @@ void MouseManager::HandleCursorMotion(wl_listener *listener, void *data) {
 
 void MouseManager::HandleCursorMotionAbsolute(wl_listener *listener, void *data){
     Compositor *server = wl_container_of(listener, server, m_CursorMotionAbsolute);
-	struct wlr_pointer_motion_absolute_event *event = static_cast<wlr_pointer_motion_absolute_event *>(data);
+	wlr_pointer_motion_absolute_event *event = static_cast<wlr_pointer_motion_absolute_event *>(data);
 	wlr_cursor_warp_absolute(server->m_Cursor, &event->pointer->base, event->x, event->y);
 	MouseManager::ProcessCursorMotion(server, event->time_msec);
 }
 
 void MouseManager::HandleCursorButton(wl_listener *listener, void *data) {
     Compositor *server = wl_container_of(listener, server, m_CursorButton);
-	struct wlr_pointer_button_event *event = static_cast<wlr_pointer_button_event *>(data);
+	wlr_pointer_button_event *event = static_cast<wlr_pointer_button_event *>(data);
 
 	wlr_seat_pointer_notify_button(server->m_Seat, event->time_msec, event->button, event->state);
 
@@ -135,7 +135,7 @@ void MouseManager::HandleCursorButton(wl_listener *listener, void *data) {
 
 void MouseManager::HandleCursorAxis(wl_listener *listener, void *data) {
     Compositor *server = wl_container_of(listener, server, m_CursorAxis);
-	struct wlr_pointer_axis_event *event = static_cast<wlr_pointer_axis_event *>(data);
+	wlr_pointer_axis_event *event = static_cast<wlr_pointer_axis_event *>(data);
 	wlr_seat_pointer_notify_axis(server->m_Seat, event->time_msec, event->orientation, event->delta, event->delta_discrete, event->source, event->relative_direction);
 }
 

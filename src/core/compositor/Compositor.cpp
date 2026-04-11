@@ -1,5 +1,5 @@
 #include "Compositor.hpp"
-#include "WindowManager.hpp"
+#include "./managers/WindowManager.hpp"
 #include "../../include/Defines.hpp"
 #include "../../debug/Debug.hpp"
 #include "../output/MonitorManager.hpp"
@@ -24,6 +24,7 @@ Compositor::Compositor() {
     wl_list_init(&m_Windows);
 
     m_Cursor = wlr_cursor_create();
+    m_FocusedWindow = nullptr;
 
     wlr_cursor_attach_output_layout(m_Cursor, m_OutputLayout);
 
@@ -39,6 +40,7 @@ Compositor::Compositor() {
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
     m_Seat = wlr_seat_create(m_Display, "seat0");
 
+    m_DecorationManager = wlr_xdg_decoration_manager_v1_create(m_Display);
     m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
 
     m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
@@ -55,6 +57,9 @@ bool Compositor::Initialize() {
 
     m_NewWindow.notify = WindowManager::HandleNewWindow;
     wl_signal_add(&m_XDGShell->events.new_toplevel, &m_NewWindow);
+
+    m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
+    wl_signal_add(&m_DecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
 
     wlr_xcursor_manager_load(m_CursorManager, 1);
 
@@ -81,9 +86,10 @@ void Compositor::Cleanup() {
     wl_display_destroy_clients(m_Display);
     wl_list_remove(&m_NewInput.link);
     wl_list_remove(&m_NewOutput.link);
+    wl_list_remove(&m_NewDecoration.link);
 
-    //for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon
-    // m_Cursor and m_CursorManager will be kept global
+    //~~for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon~~
+    //~~m_Cursor and m_CursorManager will be kept global~~
     //Hi, past me, this is future me, this actually might not be the best idea, stated above.
     //It would be better to leave this global probably, theres a difference between a cursor (visual indicator) and a pointer (actual device)
     wl_list_remove(&m_CursorMotion.link);

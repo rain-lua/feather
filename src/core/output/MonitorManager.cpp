@@ -64,7 +64,8 @@ void MonitorManager::HandleOutputFrame(wl_listener *listener, void *data){
     wlr_scene *scene = monitor->m_Server->m_Scene;
     wlr_scene_output *scene_output = wlr_scene_get_scene_output(scene, monitor->m_WlrOutput);
     wlr_scene_output_commit(scene_output, NULL);
-    struct timespec now;
+
+    timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     wlr_scene_output_send_frame_done(scene_output, &now);
 }

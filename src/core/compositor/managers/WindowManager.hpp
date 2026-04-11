@@ -1,7 +1,7 @@
 #ifndef WINDOW_MANAGER_H
 #define WINDOW_MANAGER_H
 
-#include "../../include/Defines.hpp"
+#include "../../../include/Defines.hpp"
 
 class Compositor;
 
@@ -28,6 +28,10 @@ public:
     static void HandleWindowUnmap(wl_listener *listener, void *data);
     static void HandleWindowCommit(wl_listener *listener, void *data);
     static void HandleWindowDestroy(wl_listener *listener, void *data);
+	static void HandleWindowRequestMove(wl_listener *listener, void *data);
+	static void HandleWindowRequestResize(wl_listener *listener, void *data);
+	static void HandleWindowRequestMaximize(wl_listener *listener, void *data);
+	static void HandleWindowRequestFullscreen(wl_listener *listener, void *data);
 };
 
 #endif

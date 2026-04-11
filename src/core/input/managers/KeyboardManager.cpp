@@ -59,9 +59,15 @@ static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym){
     case XKB_KEY_q:
         log_debug("super+Q");
         spawn("kitty");
+        break;
+    case XKB_KEY_c:
+        log_debug("super+C");
+        kill(server->m_FocusedWindow);
+        break;
     default:
         return false;
     }
+    
     return true;
 }
 
