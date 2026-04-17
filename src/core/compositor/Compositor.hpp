@@ -5,7 +5,9 @@
 #include "../../config/ConfigManager.hpp"
 #include "../input/managers/MouseManager.hpp"
 #include "./managers/WindowManager.hpp"
+#include "./managers/LayoutManager.hpp"
 #include "./managers/DecorationManager.hpp"
+
 class Compositor {
 public:
     Compositor();
@@ -27,6 +29,7 @@ public:
 	wl_list m_Windows;
 
     Window *m_FocusedWindow;
+    LayoutManager m_LayoutManager;
 
 	wlr_cursor *m_Cursor;
 	wlr_xcursor_manager *m_CursorManager;
