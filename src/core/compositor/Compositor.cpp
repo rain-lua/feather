@@ -13,9 +13,9 @@ Compositor::Compositor() {
     wlr_renderer_init_wl_display(m_Renderer, m_Display);
 
     m_Allocator = wlr_allocator_autocreate(m_Backend, m_Renderer);
-    wlr_compositor_create(m_Display, 5, m_Renderer);
-	wlr_subcompositor_create(m_Display);
-	wlr_data_device_manager_create(m_Display);
+    m_Compositor = wlr_compositor_create(m_Display, 5, m_Renderer);
+	m_SubCompositor = wlr_subcompositor_create(m_Display);
+	m_DataDeviceManager = wlr_data_device_manager_create(m_Display);
     m_OutputLayout = wlr_output_layout_create(m_Display);
 
     wl_list_init(&m_Outputs);

@@ -20,6 +20,10 @@ public:
     wlr_backend *m_Backend;
     wlr_renderer *m_Renderer;
     wlr_allocator *m_Allocator;
+    wlr_compositor *m_Compositor;
+    // hmmm.. SubCompositor or Subcompositor?
+    wlr_subcompositor *m_SubCompositor;
+    wlr_data_device_manager *m_DataDeviceManager;
     wlr_scene *m_Scene;
     wlr_scene_output_layout *m_SceneLayout;
     wlr_output_layout *m_OutputLayout;
