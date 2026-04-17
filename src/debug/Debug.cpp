@@ -1,4 +1,5 @@
 #include "Debug.hpp"
+#include "../include/Defines.hpp"
 
 #include <iostream> 
 #include <cstdarg>    
@@ -75,6 +76,10 @@ static void vlog_message(LogLevel level, const char* fmt, va_list args) {
 }
 
 void log_message(LogLevel level, const char* fmt, ...) {
+    if(!ENABLE_DEBUG){
+        return;
+    }
+
     va_list args;
     va_start(args, fmt);
     vlog_message(level, fmt, args);
@@ -82,6 +87,10 @@ void log_message(LogLevel level, const char* fmt, ...) {
 }
 
 void log_debug(const char* fmt, ...) {
+    if(!ENABLE_DEBUG){
+        return;
+    }
+
     va_list args;
     va_start(args, fmt);
     vlog_message(LogLevel::DEBUG, fmt, args);
@@ -89,6 +98,10 @@ void log_debug(const char* fmt, ...) {
 }
 
 void log_info(const char* fmt, ...) {
+    if(!ENABLE_DEBUG){
+        return;
+    }
+
     va_list args;
     va_start(args, fmt);
     vlog_message(LogLevel::INFO, fmt, args);
@@ -96,6 +109,10 @@ void log_info(const char* fmt, ...) {
 }
 
 void log_warn(const char* fmt, ...) {
+    if(!ENABLE_DEBUG){
+        return;
+    }
+
     va_list args;
     va_start(args, fmt);
     vlog_message(LogLevel::WARN, fmt, args);
@@ -103,6 +120,10 @@ void log_warn(const char* fmt, ...) {
 }
 
 void log_error(const char* fmt, ...) {
+    if(!ENABLE_DEBUG){
+        return;
+    }
+
     va_list args;
     va_start(args, fmt);
     vlog_message(LogLevel::ERROR, fmt, args);
@@ -110,6 +131,10 @@ void log_error(const char* fmt, ...) {
 }
 
 void log_critical(const char* fmt, ...) {
+    if(!ENABLE_DEBUG){
+        return;
+    }
+    
     va_list args;
     va_start(args, fmt);
     vlog_message(LogLevel::CRITICAL, fmt, args);

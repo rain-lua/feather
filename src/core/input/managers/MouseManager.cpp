@@ -6,27 +6,8 @@
 void MouseManager::HandleNewPointer(Compositor *server, wlr_input_device *device) {
     wlr_cursor_attach_input_device(server->m_Cursor, device);
 
-	server->m_CursorMode = CURSOR_PASSTHROUGH;
-
-	server->m_CursorMotion.notify = MouseManager::HandleCursorMotion;
-	server->m_CursorMotionAbsolute.notify = MouseManager::HandleCursorMotionAbsolute;
-	server->m_CursorButton.notify = MouseManager::HandleCursorButton;
-	server->m_CursorAxis.notify = MouseManager::HandleCursorAxis;
-	server->m_CursorFrame.notify = MouseManager::HandleCursorFrame;
-
-	server->m_RequestCursor.notify = MouseManager::SeatRequestCursor;
-	server->m_RequestSetSelection.notify = MouseManager::SeatRequestSetSelection;
-	server->m_PointerFocusChange.notify = MouseManager::SeatPointerFocusChange;
-
-	wl_signal_add(&server->m_Cursor->events.motion, &server->m_CursorMotion);
-	wl_signal_add(&server->m_Cursor->events.motion_absolute, &server->m_CursorMotionAbsolute);
-	wl_signal_add(&server->m_Cursor->events.button, &server->m_CursorButton);
-	wl_signal_add(&server->m_Cursor->events.axis, &server->m_CursorAxis);
-	wl_signal_add(&server->m_Cursor->events.frame, &server->m_CursorFrame);
-
-	wl_signal_add(&server->m_Seat->events.request_set_cursor, &server->m_RequestCursor);
-	wl_signal_add(&server->m_Seat->pointer_state.events.focus_change, &server->m_PointerFocusChange);
-	wl_signal_add(&server->m_Seat->events.request_set_selection, &server->m_RequestSetSelection);
+    // btw we removed shit there cuz to fix some assertion failing
+    // prolly a better idea overall cuz it might act weird with multiple pointers
 }
 
 void MouseManager::HandlePointerDestroy(wl_listener *listener, void *data) {
@@ -105,7 +86,6 @@ void MouseManager::ProcessCursorMotion(Compositor *server, uint32_t time) {
 }
 
 void MouseManager::HandleCursorMotion(wl_listener *listener, void *data) {
-	log_debug("Move cursor");
     Compositor *server = wl_container_of(listener, server, m_CursorMotion);
 	wlr_pointer_motion_event *event = static_cast<wlr_pointer_motion_event *>(data);
 

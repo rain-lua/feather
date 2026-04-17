@@ -49,26 +49,19 @@ void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
 }
 
 static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym){
-    log_debug("super");
-
     switch (sym) {
     case XKB_KEY_Escape:
-        log_debug("super+esc");
         wl_display_terminate(server->m_Display);
-        break;
+        return true;
     case XKB_KEY_q:
-        log_debug("super+Q");
         spawn("kitty");
-        break;
+        return true;
     case XKB_KEY_c:
-        log_debug("super+C");
         kill(server->m_FocusedWindow);
-        break;
+        return true;
     default:
         return false;
     }
-    
-    return true;
 }
 
 void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {

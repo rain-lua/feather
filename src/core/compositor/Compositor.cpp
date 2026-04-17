@@ -23,6 +23,10 @@ Compositor::Compositor() {
     wl_list_init(&m_Pointers);
     wl_list_init(&m_Windows);
 
+    m_RequestCursor.notify = MouseManager::SeatRequestCursor;
+	m_RequestSetSelection.notify = MouseManager::SeatRequestSetSelection;
+	m_PointerFocusChange.notify = MouseManager::SeatPointerFocusChange;
+
     m_Cursor = wlr_cursor_create();
     m_FocusedWindow = nullptr;
 
@@ -61,6 +65,26 @@ bool Compositor::Initialize() {
     m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
     wl_signal_add(&m_DecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
 
+    // well rn we will just handle shit there <3
+
+    m_CursorMode = CURSOR_PASSTHROUGH;
+
+	m_CursorMotion.notify = MouseManager::HandleCursorMotion;
+	m_CursorMotionAbsolute.notify = MouseManager::HandleCursorMotionAbsolute;
+	m_CursorButton.notify = MouseManager::HandleCursorButton;
+	m_CursorAxis.notify = MouseManager::HandleCursorAxis;
+	m_CursorFrame.notify = MouseManager::HandleCursorFrame;
+
+	wl_signal_add(&m_Cursor->events.motion, &m_CursorMotion);
+	wl_signal_add(&m_Cursor->events.motion_absolute, &m_CursorMotionAbsolute);
+	wl_signal_add(&m_Cursor->events.button, &m_CursorButton);
+	wl_signal_add(&m_Cursor->events.axis, &m_CursorAxis);
+	wl_signal_add(&m_Cursor->events.frame, &m_CursorFrame);
+
+    wl_signal_add(&m_Seat->events.request_set_cursor, &m_RequestCursor);
+	wl_signal_add(&m_Seat->pointer_state.events.focus_change, &m_PointerFocusChange);
+	wl_signal_add(&m_Seat->events.request_set_selection, &m_RequestSetSelection);
+
     wlr_xcursor_manager_load(m_CursorManager, 1);
 
     const char *socket = wl_display_add_socket_auto(m_Display);
@@ -84,29 +108,35 @@ void Compositor::Cleanup() {
     log_info("exiting feather...");
 
     wl_display_destroy_clients(m_Display);
-    wl_list_remove(&m_NewInput.link);
-    wl_list_remove(&m_NewOutput.link);
+
+    wl_list_remove(&m_NewWindow.link);
     wl_list_remove(&m_NewDecoration.link);
 
-    //~~for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon~~
-    //~~m_Cursor and m_CursorManager will be kept global~~
-    //Hi, past me, this is future me, this actually might not be the best idea, stated above.
-    //It would be better to leave this global probably, theres a difference between a cursor (visual indicator) and a pointer (actual device)
+    // ~~for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon~~
+    // ~~m_Cursor and m_CursorManager will be kept global~~
+    // Hi, past me, this is future me, this actually might not be the best idea, stated above.
+    // It would be better to leave this global probably, theres a difference between a cursor (visual indicator) and a pointer (actual device)
     wl_list_remove(&m_CursorMotion.link);
     wl_list_remove(&m_CursorMotionAbsolute.link);
     wl_list_remove(&m_CursorButton.link);
     wl_list_remove(&m_CursorAxis.link);
     wl_list_remove(&m_CursorFrame.link);
 
+    wl_list_remove(&m_NewInput.link);
+
     // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this
     wl_list_remove(&m_RequestCursor.link);
     wl_list_remove(&m_PointerFocusChange.link);
     wl_list_remove(&m_RequestSetSelection.link);
 
-    wlr_seat_destroy(m_Seat);
-    wlr_cursor_destroy(m_Cursor);
-    wlr_xcursor_manager_destroy(m_CursorManager);
+    wl_list_remove(&m_NewOutput.link);
+
+    // also we removed destroying the seat here for now. it was causing a segmentation fault
+    // wlr_seat_destroy(m_Seat);
+
     wlr_scene_node_destroy(&m_Scene->tree.node);
+    wlr_xcursor_manager_destroy(m_CursorManager);
+    wlr_cursor_destroy(m_Cursor);
     wlr_allocator_destroy(m_Allocator);
     wlr_renderer_destroy(m_Renderer);
     wlr_backend_destroy(m_Backend);

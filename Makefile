@@ -1,6 +1,14 @@
+.PHONY: default all prebuild build clean
+default: prebuild all
+
+prebuild:
+	@if [ -d build ]; then \
+		$(MAKE) clean; \
+	fi
+
 PKG_CONFIG ?= pkg-config
 
-PKGS := wlroots-0.21 wayland-server xkbcommon
+PKGS := wlroots-0.19 wayland-server xkbcommon
 
 MISSING_PKGS := $(strip \
   $(foreach p,$(PKGS), \
@@ -30,10 +38,28 @@ endif
 CFLAGS_LUA := $(shell $(PKG_CONFIG) --cflags $(LUA_PKG))
 LIBS_LUA   := $(shell $(PKG_CONFIG) --libs $(LUA_PKG))
 
-CXX := g++
+WAYLAND_PROTOCOLS_DIR := $(shell $(PKG_CONFIG) --variable=pkgdatadir wayland-protocols)
+WAYLAND_SCANNER := wayland-scanner
+
+BUILD_PROTO_DIR := build/protocols
+
+XDG_XML := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
+
+XDG_HEADER := $(BUILD_PROTO_DIR)/xdg-shell-protocol.h
+XDG_CODE   := $(BUILD_PROTO_DIR)/xdg-shell-protocol.c
+
+PROTO_FILES := $(XDG_HEADER) $(XDG_CODE)
+
+$(PROTO_FILES): $(XDG_XML)
+	$(call msg_color,32,Generating xdg-shell...)
+	@mkdir -p $(BUILD_PROTO_DIR)
+	$(WAYLAND_SCANNER) client-header $< $(XDG_HEADER)
+	$(WAYLAND_SCANNER) private-code $< $(XDG_CODE)
+
 CXXFLAGS := -g -Werror -DWLR_USE_UNSTABLE \
   $(CFLAGS_PKG) $(CFLAGS_LUA) \
-  -Isrc/include -Isrc/debug
+  -Isrc/include -Isrc/debug \
+  -I$(BUILD_PROTO_DIR)
 
 SRC := $(shell find src -name '*.cpp')
 OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))
@@ -47,12 +73,11 @@ all: build $(TARGET)
 	$(call msg_color,32,Build finished successfully)
 
 build:
-	$(call msg_color,33,Creating build directory...)
-	mkdir -p build
+	@mkdir -p build
 
-build/%.o: src/%.cpp
+build/%.o: src/%.cpp $(PROTO_FILES)
 	$(call msg_color,33,Compiling $< ...)
-	mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)
 	$(CXX) -c $< $(CXXFLAGS) -o $@
 
 $(TARGET): $(OBJ)

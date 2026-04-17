@@ -59,7 +59,6 @@ void MonitorManager::HandleOutputRequestState(wl_listener *listener, void *data)
 }
 
 void MonitorManager::HandleOutputFrame(wl_listener *listener, void *data){
-    log_debug("Monitor frame callback");
     Monitor *monitor = wl_container_of(listener, monitor, m_Frame);
     wlr_scene *scene = monitor->m_Server->m_Scene;
     wlr_scene_output *scene_output = wlr_scene_get_scene_output(scene, monitor->m_WlrOutput);
