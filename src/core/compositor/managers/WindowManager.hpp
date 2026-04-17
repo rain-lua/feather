@@ -24,6 +24,7 @@ class WindowManager {
 public:
     static void HandleNewWindow(wl_listener *listener, void *data);
     static void HandleWindowMap(wl_listener *listener, void *data);
+    static void Tile(Compositor *server);
 	static void FocusWindow(Window *window);
     static void HandleWindowUnmap(wl_listener *listener, void *data);
     static void HandleWindowCommit(wl_listener *listener, void *data);
