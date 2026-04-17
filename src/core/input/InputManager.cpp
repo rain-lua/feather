@@ -26,5 +26,6 @@ void InputManager::HandleNewInput(wl_listener *listener, void *data) {
     if (!wl_list_empty(&server->m_Keyboards)) {
         caps |= WL_SEAT_CAPABILITY_KEYBOARD;
     }
+    
     wlr_seat_set_capabilities(server->m_Seat, caps);
 }
