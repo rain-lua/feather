@@ -122,8 +122,12 @@ void WindowManager::HandleWindowDestroy(wl_listener *listener, void *data) {
     Window *window = wl_container_of(listener, window, m_Destroy);
 	Compositor *server = window->m_Server;
 
-	// we will just set it to nullptr for now to prevent issues.
-	server->m_FocusedWindow = nullptr;
+	if(!wl_list_empty(&server->m_Windows)) {
+		WindowManager::FocusWindow(wl_container_of(server->m_Windows.prev, server->m_FocusedWindow, m_Link));
+	} else {
+		// we will just set it to nullptr for now to prevent issues.
+		server->m_FocusedWindow = nullptr;
+	}
 
 	wl_list_remove(&window->m_Map.link);
 	wl_list_remove(&window->m_Unmap.link);
