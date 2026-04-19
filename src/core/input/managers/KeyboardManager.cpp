@@ -48,37 +48,52 @@ void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
     free(keyboard);
 }
 
-static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym){
-    switch (sym) {
-    case XKB_KEY_Escape:
-        wl_display_terminate(server->m_Display);
-        return true;
-    case XKB_KEY_q:
-        spawn("kitty");
-        return true;
-    case XKB_KEY_c:
-        kill(server->m_FocusedWindow);
-        return true;
-    default:
-        return false;
+static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym, uint32_t mods) {
+    const bool super = mods & WLR_MODIFIER_LOGO;
+
+    if (super) {
+        switch (sym) {
+            case XKB_KEY_q:
+                spawn("kitty");
+                return true;
+            case XKB_KEY_c:
+                kill(server->m_FocusedWindow);
+                return true;
+            case XKB_KEY_Escape:
+                wl_display_terminate(server->m_Display);
+                return true;
+            default:
+                break;
+        }
     }
+
+    return false;
 }
 
 void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Key);
     Compositor *server = keyboard->m_Server;
+
     wlr_keyboard_key_event *event = static_cast<wlr_keyboard_key_event *>(data);
     wlr_seat *seat = server->m_Seat;
 
-    uint32_t keycode = toXKBKeycode(event->keycode);
+    uint32_t keycode = ToXKBKeycode(event->keycode);
     const xkb_keysym_t *syms;
+
     int nsyms = xkb_state_key_get_syms(keyboard->m_WlrKeyboard->xkb_state, keycode, &syms);
+    uint32_t mods = wlr_keyboard_get_modifiers(keyboard->m_WlrKeyboard);
 
     bool handled = false;
-    uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->m_WlrKeyboard);
-    if ((modifiers & WLR_MODIFIER_LOGO) && event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+
+    if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
         for (int i = 0; i < nsyms; i++) {
-            handled = HandleKeybinding(server, syms[i]);
+            if (!handled) {
+                handled = HandleKeybinding(server, syms[i], mods);
+            }
+
+            if (handled) {
+                break;
+            }
         }
     }
 

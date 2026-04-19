@@ -7,7 +7,7 @@
 void spawn(const char* name);
 void kill(Window *window);
 
-static inline uint32_t toXKBKeycode(uint32_t keycode) {
+static inline uint32_t ToXKBKeycode(uint32_t keycode) {
     return keycode + 8;
 }
 
