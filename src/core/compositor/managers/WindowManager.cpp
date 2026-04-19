@@ -3,6 +3,66 @@
 #include "../../../debug/Debug.hpp"
 #include "../../util/Util.hpp"
 
+void WindowManager::FocusWindow(Window *window) {
+	if (window == NULL) {
+		return;
+	}
+	
+	Compositor *server = window->m_Server;
+	wlr_seat *seat = server->m_Seat;
+	wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
+	wlr_surface *surface = window->m_XDGToplevel->base->surface;
+
+	if (prev_surface == surface) {
+		return;
+	}
+
+	if (prev_surface) {
+		struct wlr_xdg_toplevel *prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
+		if (prev_window != NULL) {
+			wlr_xdg_toplevel_set_activated(prev_window, false);
+		}
+	}
+
+	wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
+
+	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
+	wl_list_remove(&window->m_Link);
+	wl_list_insert(&server->m_Windows, &window->m_Link);
+	
+	server->m_FocusedWindow = window;
+	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
+
+	if (keyboard != NULL) {
+	    wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
+	}
+}
+
+Window *WindowManager::FindWindowAt(Compositor *server, double lx, double ly, wlr_surface **surface, double *sx, double *sy) {
+	wlr_scene_node *node = wlr_scene_node_at( &server->m_Scene->tree.node, lx, ly, sx, sy);
+
+	if (node == NULL || node->type != WLR_SCENE_NODE_BUFFER) {
+		return NULL;
+	}
+
+	wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
+	wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
+
+	if (!scene_surface) {
+		return NULL;
+	}
+
+	*surface = scene_surface->surface;
+
+	wlr_scene_tree *tree = node->parent;
+
+	while (tree != NULL && tree->node.data == NULL) {
+		tree = tree->node.parent;
+	}
+
+	return static_cast<Window*>(tree->node.data);
+}
+
 void WindowManager::HandleNewWindow(wl_listener *listener, void *data) {
 	log_debug("New window!");
     Compositor *server = wl_container_of(listener, server, m_NewWindow);
@@ -42,41 +102,6 @@ void WindowManager::HandleWindowMap(wl_listener *listener, void *data) {
 
     window->m_Server->m_LayoutManager.Tile(window->m_Server);
 	WindowManager::FocusWindow(window);
-}
-
-void WindowManager::FocusWindow(Window *window) {
-	if (window == NULL) {
-		return;
-	}
-	
-	Compositor *server = window->m_Server;
-	wlr_seat *seat = server->m_Seat;
-	wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
-	wlr_surface *surface = window->m_XDGToplevel->base->surface;
-
-	if (prev_surface == surface) {
-		return;
-	}
-
-	if (prev_surface) {
-		struct wlr_xdg_toplevel *prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
-		if (prev_window != NULL) {
-			wlr_xdg_toplevel_set_activated(prev_window, false);
-		}
-	}
-
-	wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
-
-	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
-	wl_list_remove(&window->m_Link);
-	wl_list_insert(&server->m_Windows, &window->m_Link);
-	
-	server->m_FocusedWindow = window;
-	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
-
-	if (keyboard != NULL) {
-	    wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
-	}
 }
 
 void WindowManager::HandleWindowUnmap(wl_listener *listener, void *data) {

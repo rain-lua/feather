@@ -22,9 +22,11 @@ struct Window {
 
 class WindowManager {
 public:
+	static void FocusWindow(Window *window);
+	static Window *FindWindowAt(Compositor *server, double lx, double ly, wlr_surface **surface, double *sx, double *sy);
+	
     static void HandleNewWindow(wl_listener *listener, void *data);
     static void HandleWindowMap(wl_listener *listener, void *data);
-	static void FocusWindow(Window *window);
     static void HandleWindowUnmap(wl_listener *listener, void *data);
     static void HandleWindowCommit(wl_listener *listener, void *data);
     static void HandleWindowDestroy(wl_listener *listener, void *data);

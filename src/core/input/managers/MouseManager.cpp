@@ -31,7 +31,7 @@ void MouseManager::SeatRequestCursor(wl_listener *listener, void *data) {
 	}
 }
 
-void MouseManager::SeatPointerFocusChange(struct wl_listener *listener, void *data) {
+void MouseManager::SeatPointerFocusChange(wl_listener *listener, void *data) {
 	Compositor *server = wl_container_of(listener, server, m_PointerFocusChange);
 	wlr_seat_pointer_focus_change_event *event = static_cast<wlr_seat_pointer_focus_change_event *>(data);
 
@@ -47,7 +47,7 @@ void MouseManager::SeatRequestSetSelection(wl_listener *listener, void *data) {
 }
 
 void MouseManager::ResetCursorMode(Compositor *server) {
-    server->m_CursorMode= CURSOR_PASSTHROUGH;
+    server->m_CursorMode = CURSOR_PASSTHROUGH;
 }
 
 void MouseManager::ProcessCursorMotion(Compositor *server, uint32_t time) {
@@ -70,8 +70,9 @@ void MouseManager::ProcessCursorMotion(Compositor *server, uint32_t time) {
     }
 
     if (node && node->type == WLR_SCENE_NODE_BUFFER) {
-        struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
-        struct wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
+        wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
+        wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
+        
         if (scene_surface) {
             surface = scene_surface->surface;
         }
@@ -109,7 +110,13 @@ void MouseManager::HandleCursorButton(wl_listener *listener, void *data) {
 	if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
 		MouseManager::ResetCursorMode(server);
 	} else {
-        //window grabbing focus stuff
+        double sx;
+        double sy;
+
+		wlr_surface *surface = nullptr;
+
+		Window *window = WindowManager::FindWindowAt(server, server->m_Cursor->x, server->m_Cursor->y, &surface, &sx, &sy);
+		WindowManager::FocusWindow(window);
 	}
 }
 

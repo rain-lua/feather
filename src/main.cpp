@@ -9,7 +9,7 @@ int main(int argc, char **argv){
 
     Compositor compositor;
     if (!compositor.Initialize()) {
-        log_error("failed to initialize compositor");
+        log_critical("failed to initialize compositor");
         return 1;
     }
 

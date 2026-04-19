@@ -15,7 +15,7 @@ void DecorationManager::HandleNewDecoration(wl_listener *listener, void *data) {
     deco->m_Decoration = wlr_decoration;
 
     deco->m_RequestMode.notify = DecorationManager::HandleRequestMode;
-    deco->m_Destroy.notify = DecorationManager::HandleDestroy;
+    deco->m_Destroy.notify = DecorationManager::HandleDecorationDestroy;
     
     wl_signal_add(&wlr_decoration->events.request_mode, &deco->m_RequestMode);
     wl_signal_add(&wlr_decoration->events.destroy, &deco->m_Destroy);
@@ -33,7 +33,7 @@ void DecorationManager::HandleRequestMode(wl_listener *listener, void *data) {
     }
 }
 
-void DecorationManager::HandleDestroy(wl_listener *listener, void *data) {
+void DecorationManager::HandleDecorationDestroy(wl_listener *listener, void *data) {
     Decoration *deco = wl_container_of(listener, deco, m_Destroy);
     log_debug("Decoration destroyed");
 
