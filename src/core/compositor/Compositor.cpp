@@ -53,11 +53,12 @@ Compositor::Compositor() {
 bool Compositor::Initialize() {
     if (!m_Backend || !m_Renderer || !m_Allocator) return false;
 
+    m_InputManager.Initialize();
+
+    //todo: more managers here
+
     m_NewOutput.notify = MonitorManager::HandleNewOutput;
     wl_signal_add(&m_Backend->events.new_output, &m_NewOutput);
-
-    m_NewInput.notify = InputManager::HandleNewInput;
-    wl_signal_add(&m_Backend->events.new_input, &m_NewInput);
 
     m_NewWindow.notify = WindowManager::HandleNewWindow;
     wl_signal_add(&m_XDGShell->events.new_toplevel, &m_NewWindow);
@@ -122,7 +123,8 @@ void Compositor::Cleanup() {
     wl_list_remove(&m_CursorAxis.link);
     wl_list_remove(&m_CursorFrame.link);
 
-    wl_list_remove(&m_NewInput.link);
+    m_InputManager.Cleanup();
+     //todo: more managers here
 
     // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this
     wl_list_remove(&m_RequestCursor.link);

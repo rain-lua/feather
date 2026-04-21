@@ -4,6 +4,19 @@
 #include "../compositor/Compositor.hpp"
 #include "../../debug/Debug.hpp"
 
+InputManager::InputManager() {
+    // todo: add stuff here
+}
+
+void InputManager::Initialize() {
+    m_NewInput.notify = InputManager::HandleNewInput;
+    wl_signal_add(&g_pCompositor->m_Backend->events.new_input, &m_NewInput);
+}
+
+void InputManager::Cleanup() {
+    wl_list_remove(&m_NewInput.link);
+}
+
 void InputManager::HandleNewInput(wl_listener *listener, void *data) {
     wlr_input_device *device = static_cast<wlr_input_device *>(data);
 
