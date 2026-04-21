@@ -6,7 +6,7 @@
 #include "../compositor/managers/WindowManager.hpp"
 #include "../../include/Defines.hpp"
 
-void spawn(const char *cmd) {
+void Spawn(const char *cmd) {
     pid_t pid = fork();
     if (pid < 0) return;  
 
@@ -22,12 +22,4 @@ void spawn(const char *cmd) {
     }
 
     waitpid(pid, nullptr, 0);
-}
-
-void kill(Window *window) {
-    if (window == nullptr || window->m_XDGToplevel == nullptr) {
-        return;
-    }
-    
-    wlr_xdg_toplevel_send_close(window->m_XDGToplevel);
 }

@@ -38,6 +38,14 @@ void WindowManager::FocusWindow(Window *window) {
 	}
 }
 
+void WindowManager::CloseWindow(Window *window) {
+	if (window == nullptr || window->m_XDGToplevel == nullptr) {
+        return;
+    }
+    
+    wlr_xdg_toplevel_send_close(window->m_XDGToplevel);
+}
+
 Window *WindowManager::FindWindowAt(Compositor *server, double lx, double ly, wlr_surface **surface, double *sx, double *sy) {
 	wlr_scene_node *node = wlr_scene_node_at( &server->m_Scene->tree.node, lx, ly, sx, sy);
 

@@ -54,10 +54,10 @@ static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym, uint32_t mods
     if (super) {
         switch (sym) {
             case XKB_KEY_q:
-                spawn("kitty");
+                Spawn("kitty");
                 return true;
             case XKB_KEY_c:
-                kill(server->m_FocusedWindow);
+                WindowManager::CloseWindow(server->m_FocusedWindow);
                 return true;
             case XKB_KEY_Escape:
                 wl_display_terminate(server->m_Display);
