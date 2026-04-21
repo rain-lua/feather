@@ -9,6 +9,9 @@ class LayoutManager {
 public:
     LayoutManager();
 
+    void Initialize();
+    void Cleanup();
+
     float m_MasterFact;
 
     void Tile();

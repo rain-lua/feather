@@ -7,6 +7,14 @@ LayoutManager::LayoutManager() {
     m_MasterFact = 0.5f;
 }
 
+void LayoutManager::Initialize() {
+    // we don't have to do anything here yet
+}
+
+void LayoutManager::Cleanup() {
+    // we don't have to do anything here yet
+}
+
 void LayoutManager::Tile() {
     if (wl_list_empty(&g_pCompositor->m_Windows)) {
         return;
