@@ -48,14 +48,16 @@ Compositor::Compositor() {
 bool Compositor::Initialize() {
     if (!m_Backend || !m_Renderer || !m_Allocator) return false;
 
-    m_InputManager.Initialize();
-    m_KeyboardManager.Initialize();
+    m_MonitorManager.Initialize();
+
     m_WindowManager.Initialize();
     m_LayoutManager.Initialize();
     m_DecorationManager.Initialize();
-    m_MonitorManager.Initialize();
 
-    //todo: more managers here
+    m_InputManager.Initialize();
+    m_KeyboardManager.Initialize();
+
+    // todo: more managers here
 
     // well rn we will just handle shit there <3
 
@@ -111,11 +113,13 @@ void Compositor::Cleanup() {
     wl_list_remove(&m_CursorAxis.link);
     wl_list_remove(&m_CursorFrame.link);
 
-    m_InputManager.Cleanup();
-    m_KeyboardManager.Cleanup();
-    m_WindowManager.Cleanup();
-    m_LayoutManager.Cleanup();
     m_DecorationManager.Cleanup();
+    m_LayoutManager.Cleanup();
+    m_WindowManager.Cleanup();
+
+    m_KeyboardManager.Cleanup();
+    m_InputManager.Cleanup();
+
     m_MonitorManager.Cleanup();
 
     //todo: more managers here
@@ -124,8 +128,6 @@ void Compositor::Cleanup() {
     wl_list_remove(&m_RequestCursor.link);
     wl_list_remove(&m_PointerFocusChange.link);
     wl_list_remove(&m_RequestSetSelection.link);
-
-
 
     // also we removed destroying the seat here for now. it was causing a segmentation fault
     // wlr_seat_destroy(m_Seat);
