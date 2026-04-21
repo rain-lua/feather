@@ -3,6 +3,21 @@
 #include "../../../debug/Debug.hpp"
 #include <cstdlib>
 
+DecorationManager::DecorationManager() {
+
+}
+
+void DecorationManager::Initialize() {
+    m_XDGDecorationManager = wlr_xdg_decoration_manager_v1_create(g_pCompositor->m_Display);
+    
+    m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
+    wl_signal_add(&m_XDGDecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
+}
+
+void DecorationManager::Cleanup() {
+    wl_list_remove(&m_NewDecoration.link);
+}
+
 void DecorationManager::HandleNewDecoration(wl_listener *listener, void *data) {
     wlr_xdg_toplevel_decoration_v1 *wlr_decoration = static_cast<wlr_xdg_toplevel_decoration_v1 *>(data);
     log_debug("New decoration request %p", wlr_decoration);

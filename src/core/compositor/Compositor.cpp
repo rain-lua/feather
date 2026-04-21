@@ -41,7 +41,6 @@ Compositor::Compositor() {
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
     m_Seat = wlr_seat_create(m_Display, "seat0");
 
-    m_DecorationManager = wlr_xdg_decoration_manager_v1_create(m_Display);
     m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
 
     m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
@@ -52,16 +51,14 @@ bool Compositor::Initialize() {
 
     m_InputManager.Initialize();
     m_KeyboardManager.Initialize();
-    m_LayoutManager.Initialize();
     m_WindowManager.Initialize();
+    m_LayoutManager.Initialize();
+    m_DecorationManager.Initialize();
 
     //todo: more managers here
 
     m_NewOutput.notify = MonitorManager::HandleNewOutput;
     wl_signal_add(&m_Backend->events.new_output, &m_NewOutput);
-
-    m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
-    wl_signal_add(&m_DecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
 
     // well rn we will just handle shit there <3
 
@@ -106,7 +103,6 @@ void Compositor::Cleanup() {
     log_info("exiting feather...");
 
     wl_display_destroy_clients(m_Display);
-    wl_list_remove(&m_NewDecoration.link);
 
     // ~~for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon~~
     // ~~m_Cursor and m_CursorManager will be kept global~~
@@ -120,8 +116,10 @@ void Compositor::Cleanup() {
 
     m_InputManager.Cleanup();
     m_KeyboardManager.Cleanup();
-    m_LayoutManager.Cleanup();
     m_WindowManager.Cleanup();
+    m_LayoutManager.Cleanup();
+    m_DecorationManager.Cleanup();
+
     //todo: more managers here
 
     // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this
