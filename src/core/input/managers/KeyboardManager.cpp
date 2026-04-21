@@ -73,7 +73,7 @@ static bool HandleKeybinding(xkb_keysym_t sym, uint32_t mods) {
                 Spawn("kitty");
                 return true;
             case XKB_KEY_c:
-                WindowManager::CloseWindow(g_pCompositor->m_FocusedWindow);
+                g_pCompositor->m_WindowManager.CloseWindow(g_pCompositor->m_WindowManager.m_FocusedWindow);
                 return true;
             case XKB_KEY_Escape:
                 wl_display_terminate(g_pCompositor->m_Display);

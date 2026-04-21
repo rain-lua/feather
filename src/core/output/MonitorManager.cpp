@@ -14,6 +14,7 @@ void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
     wlr_output_state_set_enabled(&state, true);
 
     wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
+    
     if (mode != NULL) {
         wlr_output_state_set_mode(&state, mode);
     }

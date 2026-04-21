@@ -31,13 +31,10 @@ public:
     wlr_output_layout *m_OutputLayout;
 
     wlr_xdg_shell *m_XDGShell;
-	wl_listener m_NewWindow;
-	wl_list m_Windows;
-
-    Window *m_FocusedWindow;
 
     InputManager m_InputManager;
     KeyboardManager m_KeyboardManager;
+    WindowManager m_WindowManager;
     LayoutManager m_LayoutManager;
 
 	wlr_cursor *m_Cursor;

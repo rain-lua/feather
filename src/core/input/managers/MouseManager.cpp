@@ -109,8 +109,8 @@ void MouseManager::HandleCursorButton(wl_listener *listener, void *data) {
 
 		wlr_surface *surface = nullptr;
 
-		Window *window = WindowManager::FindWindowAt(g_pCompositor->m_Cursor->x, g_pCompositor->m_Cursor->y, &surface, &sx, &sy);
-		WindowManager::FocusWindow(window);
+		Window *window = g_pCompositor->m_WindowManager.FindWindowAt(g_pCompositor->m_Cursor->x, g_pCompositor->m_Cursor->y, &surface, &sx, &sy);
+		g_pCompositor->m_WindowManager.FocusWindow(window);
 	}
 }
 

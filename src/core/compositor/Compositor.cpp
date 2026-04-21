@@ -20,14 +20,12 @@ Compositor::Compositor() {
 
     wl_list_init(&m_Outputs);
     wl_list_init(&m_Pointers);
-    wl_list_init(&m_Windows);
 
     m_RequestCursor.notify = MouseManager::SeatRequestCursor;
 	m_RequestSetSelection.notify = MouseManager::SeatRequestSetSelection;
 	m_PointerFocusChange.notify = MouseManager::SeatPointerFocusChange;
 
     m_Cursor = wlr_cursor_create();
-    m_FocusedWindow = nullptr;
 
     wlr_cursor_attach_output_layout(m_Cursor, m_OutputLayout);
 
@@ -54,15 +52,13 @@ bool Compositor::Initialize() {
 
     m_InputManager.Initialize();
     m_KeyboardManager.Initialize();
-    m_InputManager.Initialize();
+    m_LayoutManager.Initialize();
+    m_WindowManager.Initialize();
 
     //todo: more managers here
 
     m_NewOutput.notify = MonitorManager::HandleNewOutput;
     wl_signal_add(&m_Backend->events.new_output, &m_NewOutput);
-
-    m_NewWindow.notify = WindowManager::HandleNewWindow;
-    wl_signal_add(&m_XDGShell->events.new_toplevel, &m_NewWindow);
 
     m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
     wl_signal_add(&m_DecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
@@ -110,8 +106,6 @@ void Compositor::Cleanup() {
     log_info("exiting feather...");
 
     wl_display_destroy_clients(m_Display);
-
-    wl_list_remove(&m_NewWindow.link);
     wl_list_remove(&m_NewDecoration.link);
 
     // ~~for now we need this as we made these members of the compositor class, i think we will move these into the cursor struct itself soon~~
@@ -126,7 +120,8 @@ void Compositor::Cleanup() {
 
     m_InputManager.Cleanup();
     m_KeyboardManager.Cleanup();
-    m_InputManager.Cleanup();
+    m_LayoutManager.Cleanup();
+    m_WindowManager.Cleanup();
     //todo: more managers here
 
     // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this

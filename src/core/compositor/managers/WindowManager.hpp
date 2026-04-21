@@ -3,11 +3,9 @@
 
 #include "../../../include/Defines.hpp"
 
-class Compositor;
-
 struct Window {
     wl_list m_Link;
-	
+
 	wlr_xdg_toplevel *m_XDGToplevel;
 	wlr_scene_tree *m_SceneTree;
 	
@@ -23,10 +21,20 @@ struct Window {
 
 class WindowManager {
 public:
-	static void FocusWindow(Window *window);
-	static void CloseWindow(Window *window);
+    WindowManager();
 
-	static Window *FindWindowAt(double lx, double ly, wlr_surface **surface, double *sx, double *sy);
+	void Initialize();
+	void Cleanup();
+
+	wl_list m_Windows;
+	wl_listener m_NewWindow;
+
+	Window *m_FocusedWindow;
+
+	void FocusWindow(Window *window);
+	void CloseWindow(Window *window);
+
+	Window *FindWindowAt(double lx, double ly, wlr_surface **surface, double *sx, double *sy);
 	
     static void HandleNewWindow(wl_listener *listener, void *data);
     static void HandleWindowMap(wl_listener *listener, void *data);

@@ -3,6 +3,21 @@
 #include "../../../debug/Debug.hpp"
 #include "../../util/Util.hpp"
 
+WindowManager::WindowManager() {
+	wl_list_init(&m_Windows);
+
+	m_FocusedWindow = nullptr;
+}
+
+void WindowManager::Initialize() {
+	m_NewWindow.notify = WindowManager::HandleNewWindow;
+	wl_signal_add(&g_pCompositor->m_XDGShell->events.new_toplevel, &m_NewWindow);
+}
+
+void WindowManager::Cleanup() {
+	wl_list_remove(&m_NewWindow.link);
+}
+
 void WindowManager::FocusWindow(Window *window) {
 	if (window == NULL) {
 		return;
@@ -27,9 +42,9 @@ void WindowManager::FocusWindow(Window *window) {
 
 	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
 	wl_list_remove(&window->m_Link);
-	wl_list_insert(&g_pCompositor->m_Windows, &window->m_Link);
+	wl_list_insert(&g_pCompositor->m_WindowManager.m_Windows, &window->m_Link);
 	
-	g_pCompositor->m_FocusedWindow = window;
+	g_pCompositor->m_WindowManager.m_FocusedWindow = window;
 	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
 
 	if (keyboard != NULL) {
@@ -105,10 +120,10 @@ void WindowManager::HandleWindowMap(wl_listener *listener, void *data) {
 	log_debug("Window map");
 
     Window *window = wl_container_of(listener, window, m_Map);
-	wl_list_insert(&g_pCompositor->m_Windows, &window->m_Link);
+	wl_list_insert(&g_pCompositor->m_WindowManager.m_Windows, &window->m_Link);
 
     g_pCompositor->m_LayoutManager.Tile();
-	WindowManager::FocusWindow(window);
+	g_pCompositor->m_WindowManager.FocusWindow(window);
 }
 
 void WindowManager::HandleWindowUnmap(wl_listener *listener, void *data) {
@@ -156,11 +171,11 @@ void WindowManager::HandleWindowDestroy(wl_listener *listener, void *data) {
 
     Window *window = wl_container_of(listener, window, m_Destroy);
 
-	if(!wl_list_empty(&g_pCompositor->m_Windows)) {
-		WindowManager::FocusWindow(wl_container_of(g_pCompositor->m_Windows.prev, g_pCompositor->m_FocusedWindow, m_Link));
+	if(!wl_list_empty(&g_pCompositor->m_WindowManager.m_Windows)) {
+		g_pCompositor->m_WindowManager.FocusWindow(wl_container_of(g_pCompositor->m_WindowManager.m_Windows.prev, g_pCompositor->m_WindowManager.m_FocusedWindow, m_Link));
 	} else {
 		// we will just set it to nullptr for now to prevent issues.
-		g_pCompositor->m_FocusedWindow = nullptr;
+		g_pCompositor->m_WindowManager.m_FocusedWindow = nullptr;
 	}
 
 	wl_list_remove(&window->m_Map.link);
