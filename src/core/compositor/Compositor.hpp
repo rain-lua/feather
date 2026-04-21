@@ -3,6 +3,7 @@
 
 #include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
+#include "../input/InputManager.hpp"
 #include "../input/managers/MouseManager.hpp"
 #include "./managers/WindowManager.hpp"
 #include "./managers/LayoutManager.hpp"
@@ -33,6 +34,8 @@ public:
 	wl_list m_Windows;
 
     Window *m_FocusedWindow;
+
+    InputManager m_InputManager;
     LayoutManager m_LayoutManager;
 
 	wlr_cursor *m_Cursor;
@@ -52,7 +55,6 @@ public:
 	wl_listener m_RequestSetSelection;
     CursorMode m_CursorMode;
     wl_listener m_NewOutput;
-    wl_listener m_NewInput;
     wlr_seat *m_Seat;
 
     wl_listener m_NewDecoration;
