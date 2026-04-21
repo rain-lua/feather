@@ -54,6 +54,7 @@ bool Compositor::Initialize() {
 
     m_InputManager.Initialize();
     m_KeyboardManager.Initialize();
+    m_InputManager.Initialize();
 
     //todo: more managers here
 
@@ -125,6 +126,7 @@ void Compositor::Cleanup() {
 
     m_InputManager.Cleanup();
     m_KeyboardManager.Cleanup();
+    m_InputManager.Cleanup();
     //todo: more managers here
 
     // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this
