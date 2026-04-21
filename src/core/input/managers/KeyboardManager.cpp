@@ -3,15 +3,15 @@
 #include "../../../debug/Debug.hpp"
 #include "../../util/Util.hpp"
 
-void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *device) {
+void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     wlr_keyboard *wlr_keyboard = wlr_keyboard_from_input_device(device);
+
     Keyboard *keyboard = (Keyboard *)calloc(1, sizeof(*keyboard));
-    keyboard->m_Server = server;
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
-    std::string layout = server->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
-    int repeat_rate = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
-    int repeat_delay = server->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
+    std::string layout = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
+    int repeat_rate = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
+    int repeat_delay = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
 
     xkb_rule_names names;
     memset(&names, 0, sizeof(names));
@@ -34,8 +34,8 @@ void KeyboardManager::HandleNewKeyboard(Compositor *server, wlr_input_device *de
     keyboard->m_Destroy.notify = KeyboardManager::HandleKeyboardDestroy;
     wl_signal_add(&device->events.destroy, &keyboard->m_Destroy);
 
-    wlr_seat_set_keyboard(server->m_Seat, keyboard->m_WlrKeyboard);
-    wl_list_insert(&server->m_Keyboards, &keyboard->m_Link);
+    wlr_seat_set_keyboard(g_pCompositor->m_Seat, keyboard->m_WlrKeyboard);
+    wl_list_insert(&g_pCompositor->m_Keyboards, &keyboard->m_Link);
 }
 
 void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
@@ -48,7 +48,7 @@ void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
     free(keyboard);
 }
 
-static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym, uint32_t mods) {
+static bool HandleKeybinding(xkb_keysym_t sym, uint32_t mods) {
     const bool super = mods & WLR_MODIFIER_LOGO;
 
     if (super) {
@@ -57,10 +57,10 @@ static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym, uint32_t mods
                 Spawn("kitty");
                 return true;
             case XKB_KEY_c:
-                WindowManager::CloseWindow(server->m_FocusedWindow);
+                WindowManager::CloseWindow(g_pCompositor->m_FocusedWindow);
                 return true;
             case XKB_KEY_Escape:
-                wl_display_terminate(server->m_Display);
+                wl_display_terminate(g_pCompositor->m_Display);
                 return true;
             default:
                 break;
@@ -72,10 +72,9 @@ static bool HandleKeybinding(Compositor *server, xkb_keysym_t sym, uint32_t mods
 
 void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Key);
-    Compositor *server = keyboard->m_Server;
 
     wlr_keyboard_key_event *event = static_cast<wlr_keyboard_key_event *>(data);
-    wlr_seat *seat = server->m_Seat;
+    wlr_seat *seat = g_pCompositor->m_Seat;
 
     uint32_t keycode = ToXKBKeycode(event->keycode);
     const xkb_keysym_t *syms;
@@ -88,7 +87,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {
     if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
         for (int i = 0; i < nsyms; i++) {
             if (!handled) {
-                handled = HandleKeybinding(server, syms[i], mods);
+                handled = HandleKeybinding(syms[i], mods);
             }
 
             if (handled) {
@@ -105,6 +104,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener *listener, void *data) {
 
 void KeyboardManager::HandleKeyboardModifiers(wl_listener *listener, void *data) {
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Modifiers);
-    wlr_seat_set_keyboard(keyboard->m_Server->m_Seat, keyboard->m_WlrKeyboard);
-    wlr_seat_keyboard_notify_modifiers(keyboard->m_Server->m_Seat, &keyboard->m_WlrKeyboard->modifiers);
+
+    wlr_seat_set_keyboard(g_pCompositor->m_Seat, keyboard->m_WlrKeyboard);
+    wlr_seat_keyboard_notify_modifiers(g_pCompositor->m_Seat, &keyboard->m_WlrKeyboard->modifiers);
 }

@@ -11,7 +11,7 @@ public:
 
     float m_MasterFact;
 
-    void Tile(Compositor *server);
+    void Tile();
 };
 
 #endif

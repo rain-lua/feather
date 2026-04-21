@@ -7,13 +7,15 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    Compositor compositor;
-    if (!compositor.Initialize()) {
-        log_critical("failed to initialize compositor");
+    g_pCompositor = std::make_unique<Compositor>();
+
+    if (!g_pCompositor->Initialize()) {
+        log_critical("Failed to initialize compositor! You are on your own, have fun! :)");
         return 1;
     }
 
-    compositor.Run();
-    compositor.Cleanup();
+    g_pCompositor->Run();
+    g_pCompositor->Cleanup();
+
     return 0;
 }

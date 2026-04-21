@@ -7,9 +7,10 @@ class Compositor;
 
 struct Window {
     wl_list m_Link;
-	Compositor *m_Server;
+	
 	wlr_xdg_toplevel *m_XDGToplevel;
 	wlr_scene_tree *m_SceneTree;
+	
 	wl_listener m_Map;
 	wl_listener m_Unmap;
 	wl_listener m_Commit;
@@ -25,7 +26,7 @@ public:
 	static void FocusWindow(Window *window);
 	static void CloseWindow(Window *window);
 
-	static Window *FindWindowAt(Compositor *server, double lx, double ly, wlr_surface **surface, double *sx, double *sy);
+	static Window *FindWindowAt(double lx, double ly, wlr_surface **surface, double *sx, double *sy);
 	
     static void HandleNewWindow(wl_listener *listener, void *data);
     static void HandleWindowMap(wl_listener *listener, void *data);

@@ -7,19 +7,19 @@ LayoutManager::LayoutManager() {
     m_MasterFact = 0.5f;
 }
 
-void LayoutManager::Tile(Compositor *server) {
-    if (wl_list_empty(&server->m_Windows)) {
+void LayoutManager::Tile() {
+    if (wl_list_empty(&g_pCompositor->m_Windows)) {
         return;
     }
 
     wlr_box box;
-    wlr_output_layout_get_box(server->m_OutputLayout, NULL, &box);
+    wlr_output_layout_get_box(g_pCompositor->m_OutputLayout, NULL, &box);
 
     int width = box.width;
     int height = box.height;
 
-    if (wl_list_length(&server->m_Windows) == 1) {
-        Window *w = wl_container_of(server->m_Windows.next, w, m_Link);
+    if (wl_list_length(&g_pCompositor->m_Windows) == 1) {
+        Window *w = wl_container_of(g_pCompositor->m_Windows.next, w, m_Link);
         
         wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
         wlr_xdg_toplevel_set_size(w->m_XDGToplevel, width, height);
@@ -27,14 +27,14 @@ void LayoutManager::Tile(Compositor *server) {
     }
 
     int master_width = (int)(width * m_MasterFact);
-    int stack_count = wl_list_length(&server->m_Windows) - 1;
+    int stack_count = wl_list_length(&g_pCompositor->m_Windows) - 1;
     int stack_width = width - master_width;
     int stack_height = height / stack_count;
 
     Window *w;
     int i = 0;
 
-    wl_list_for_each(w, &server->m_Windows, m_Link) {
+    wl_list_for_each(w, &g_pCompositor->m_Windows, m_Link) {
         if (i == 0) {
             wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
             wlr_xdg_toplevel_set_size(w->m_XDGToplevel, master_width, height);

@@ -8,8 +8,7 @@ void WindowManager::FocusWindow(Window *window) {
 		return;
 	}
 	
-	Compositor *server = window->m_Server;
-	wlr_seat *seat = server->m_Seat;
+	wlr_seat *seat = g_pCompositor->m_Seat;
 	wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
 	wlr_surface *surface = window->m_XDGToplevel->base->surface;
 
@@ -28,9 +27,9 @@ void WindowManager::FocusWindow(Window *window) {
 
 	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
 	wl_list_remove(&window->m_Link);
-	wl_list_insert(&server->m_Windows, &window->m_Link);
+	wl_list_insert(&g_pCompositor->m_Windows, &window->m_Link);
 	
-	server->m_FocusedWindow = window;
+	g_pCompositor->m_FocusedWindow = window;
 	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
 
 	if (keyboard != NULL) {
@@ -46,8 +45,8 @@ void WindowManager::CloseWindow(Window *window) {
     wlr_xdg_toplevel_send_close(window->m_XDGToplevel);
 }
 
-Window *WindowManager::FindWindowAt(Compositor *server, double lx, double ly, wlr_surface **surface, double *sx, double *sy) {
-	wlr_scene_node *node = wlr_scene_node_at( &server->m_Scene->tree.node, lx, ly, sx, sy);
+Window *WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface, double *sx, double *sy) {
+	wlr_scene_node *node = wlr_scene_node_at( &g_pCompositor->m_Scene->tree.node, lx, ly, sx, sy);
 
 	if (node == NULL || node->type != WLR_SCENE_NODE_BUFFER) {
 		return NULL;
@@ -73,14 +72,14 @@ Window *WindowManager::FindWindowAt(Compositor *server, double lx, double ly, wl
 
 void WindowManager::HandleNewWindow(wl_listener *listener, void *data) {
 	log_debug("New window!");
-    Compositor *server = wl_container_of(listener, server, m_NewWindow);
+
 	wlr_xdg_toplevel *XDG_Toplevel = static_cast<wlr_xdg_toplevel *>(data);
 
 	Window *window = (Window *)calloc(1, sizeof(*window));
-	window->m_Server = server;
 	window->m_XDGToplevel = XDG_Toplevel;
-	window->m_SceneTree = wlr_scene_xdg_surface_create(&window->m_Server->m_Scene->tree, XDG_Toplevel->base);
+	window->m_SceneTree = wlr_scene_xdg_surface_create(&g_pCompositor->m_Scene->tree, XDG_Toplevel->base);
 	window->m_SceneTree->node.data = window;
+
 	XDG_Toplevel->base->data = window->m_SceneTree;
 
 	window->m_Map.notify = WindowManager::HandleWindowMap;
@@ -104,11 +103,11 @@ void WindowManager::HandleNewWindow(wl_listener *listener, void *data) {
 
 void WindowManager::HandleWindowMap(wl_listener *listener, void *data) {
 	log_debug("Window map");
+
     Window *window = wl_container_of(listener, window, m_Map);
+	wl_list_insert(&g_pCompositor->m_Windows, &window->m_Link);
 
-	wl_list_insert(&window->m_Server->m_Windows, &window->m_Link);
-
-    window->m_Server->m_LayoutManager.Tile(window->m_Server);
+    g_pCompositor->m_LayoutManager.Tile();
 	WindowManager::FocusWindow(window);
 }
 
@@ -116,7 +115,7 @@ void WindowManager::HandleWindowUnmap(wl_listener *listener, void *data) {
     Window *window = wl_container_of(listener, window, m_Unmap);
 
 	wl_list_remove(&window->m_Link);
-	window->m_Server->m_LayoutManager.Tile(window->m_Server);
+	g_pCompositor->m_LayoutManager.Tile();
 }
 
 void WindowManager::HandleWindowCommit(wl_listener *listener, void *data) {
@@ -138,6 +137,7 @@ void WindowManager::HandleWindowRequestResize(wl_listener *listener, void *data)
 
 void WindowManager::HandleWindowRequestMaximize(wl_listener *listener, void *data) {
 	Window *window = wl_container_of(listener, window, m_RequestMaximize);
+
 	if (window->m_XDGToplevel->base->initialized) {
 		wlr_xdg_surface_schedule_configure(window->m_XDGToplevel->base);
 	}
@@ -145,6 +145,7 @@ void WindowManager::HandleWindowRequestMaximize(wl_listener *listener, void *dat
 
 void WindowManager::HandleWindowRequestFullscreen(wl_listener *listener, void *data) {
 	Window *window = wl_container_of(listener, window, m_RequestFullscreen);
+
 	if (window->m_XDGToplevel->base->initialized) {
 		wlr_xdg_surface_schedule_configure(window->m_XDGToplevel->base);
 	}
@@ -152,14 +153,14 @@ void WindowManager::HandleWindowRequestFullscreen(wl_listener *listener, void *d
 
 void WindowManager::HandleWindowDestroy(wl_listener *listener, void *data) {
 	log_debug("Window destroyed");
-    Window *window = wl_container_of(listener, window, m_Destroy);
-	Compositor *server = window->m_Server;
 
-	if(!wl_list_empty(&server->m_Windows)) {
-		WindowManager::FocusWindow(wl_container_of(server->m_Windows.prev, server->m_FocusedWindow, m_Link));
+    Window *window = wl_container_of(listener, window, m_Destroy);
+
+	if(!wl_list_empty(&g_pCompositor->m_Windows)) {
+		WindowManager::FocusWindow(wl_container_of(g_pCompositor->m_Windows.prev, g_pCompositor->m_FocusedWindow, m_Link));
 	} else {
 		// we will just set it to nullptr for now to prevent issues.
-		server->m_FocusedWindow = nullptr;
+		g_pCompositor->m_FocusedWindow = nullptr;
 	}
 
 	wl_list_remove(&window->m_Map.link);
