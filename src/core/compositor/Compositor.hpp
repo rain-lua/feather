@@ -36,6 +36,7 @@ public:
     KeyboardManager m_KeyboardManager;
     WindowManager m_WindowManager;
     LayoutManager m_LayoutManager;
+    DecorationManager m_DecorationManager;
 
 	wlr_cursor *m_Cursor;
 	wlr_xcursor_manager *m_CursorManager;
@@ -54,9 +55,6 @@ public:
     CursorMode m_CursorMode;
     wl_listener m_NewOutput;
     wlr_seat *m_Seat;
-
-    wl_listener m_NewDecoration;
-    wlr_xdg_decoration_manager_v1 *m_DecorationManager;
 
     std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;
 };
