@@ -19,7 +19,6 @@ Compositor::Compositor() {
     m_OutputLayout = wlr_output_layout_create(m_Display);
 
     wl_list_init(&m_Outputs);
-    wl_list_init(&m_Keyboards);
     wl_list_init(&m_Pointers);
     wl_list_init(&m_Windows);
 
@@ -54,6 +53,7 @@ bool Compositor::Initialize() {
     if (!m_Backend || !m_Renderer || !m_Allocator) return false;
 
     m_InputManager.Initialize();
+    m_KeyboardManager.Initialize();
 
     //todo: more managers here
 
@@ -124,7 +124,8 @@ void Compositor::Cleanup() {
     wl_list_remove(&m_CursorFrame.link);
 
     m_InputManager.Cleanup();
-     //todo: more managers here
+    m_KeyboardManager.Cleanup();
+    //todo: more managers here
 
     // this destroys seat-related listeners. maybe we will make a seat class in the future to handle this
     wl_list_remove(&m_RequestCursor.link);

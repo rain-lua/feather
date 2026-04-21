@@ -4,6 +4,7 @@
 #include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
 #include "../input/InputManager.hpp"
+#include "../input/managers/KeyboardManager.hpp"
 #include "../input/managers/MouseManager.hpp"
 #include "./managers/WindowManager.hpp"
 #include "./managers/LayoutManager.hpp"
@@ -36,6 +37,7 @@ public:
     Window *m_FocusedWindow;
 
     InputManager m_InputManager;
+    KeyboardManager m_KeyboardManager;
     LayoutManager m_LayoutManager;
 
 	wlr_cursor *m_Cursor;
@@ -47,7 +49,6 @@ public:
 	wl_listener m_CursorFrame;
 
     wl_list m_Outputs;
-    wl_list m_Keyboards;
     wl_list m_Pointers;
 
     wl_listener m_RequestCursor;

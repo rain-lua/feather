@@ -3,8 +3,6 @@
 
 #include "../../../include/Defines.hpp"
 
-class Compositor;
-
 struct Keyboard {
     wl_list m_Link;
     wlr_keyboard *m_WlrKeyboard;
@@ -16,6 +14,13 @@ struct Keyboard {
 
 class KeyboardManager {
 public:
+    KeyboardManager();
+
+    void Initialize();
+    void Cleanup();
+
+    wl_list m_Keyboards;
+
     static void HandleNewKeyboard(wlr_input_device *device);
     static void HandleKeyboardDestroy(wl_listener *listener, void *data);
     static void HandleKeyboardKey(wl_listener *listener, void *data);

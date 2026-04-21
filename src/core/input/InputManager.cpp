@@ -35,7 +35,7 @@ void InputManager::HandleNewInput(wl_listener *listener, void *data) {
     }
 
     uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
-    if (!wl_list_empty(&g_pCompositor->m_Keyboards)) {
+    if (!wl_list_empty(&g_pCompositor->m_KeyboardManager.m_Keyboards)) {
         caps |= WL_SEAT_CAPABILITY_KEYBOARD;
     }
     

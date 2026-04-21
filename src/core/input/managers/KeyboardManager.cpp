@@ -3,6 +3,18 @@
 #include "../../../debug/Debug.hpp"
 #include "../../util/Util.hpp"
 
+KeyboardManager::KeyboardManager() {
+    wl_list_init(&m_Keyboards);
+}
+
+void KeyboardManager::Initialize() {
+    // we don't have to do anything here yet
+}
+
+void KeyboardManager::Cleanup() {
+    // we don't have to do anything here yet
+}
+
 void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     wlr_keyboard *wlr_keyboard = wlr_keyboard_from_input_device(device);
 
@@ -10,6 +22,7 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
     std::string layout = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
+
     int repeat_rate = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
     int repeat_delay = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
 
@@ -19,6 +32,7 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
 
     xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     xkb_keymap *keymap = xkb_keymap_new_from_names(context, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
+
     wlr_keyboard_set_keymap(wlr_keyboard, keymap);
     xkb_keymap_unref(keymap);
     xkb_context_unref(context);
@@ -35,16 +49,18 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     wl_signal_add(&device->events.destroy, &keyboard->m_Destroy);
 
     wlr_seat_set_keyboard(g_pCompositor->m_Seat, keyboard->m_WlrKeyboard);
-    wl_list_insert(&g_pCompositor->m_Keyboards, &keyboard->m_Link);
+    wl_list_insert(&g_pCompositor->m_KeyboardManager.m_Keyboards, &keyboard->m_Link);
 }
 
 void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
     log_info("--- Keyboard Disconnected ---");
     Keyboard *keyboard = wl_container_of(listener, keyboard, m_Destroy);
+
     wl_list_remove(&keyboard->m_Modifiers.link);
     wl_list_remove(&keyboard->m_Key.link);
     wl_list_remove(&keyboard->m_Destroy.link);
     wl_list_remove(&keyboard->m_Link);
+
     free(keyboard);
 }
 
