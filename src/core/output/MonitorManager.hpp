@@ -7,7 +7,7 @@ class Compositor;
 
 struct Monitor {
     wl_list m_Link;
-    Compositor *m_Server;
+
     wlr_output *m_WlrOutput;
     wl_listener m_Frame;
     wl_listener m_RequestState;
@@ -16,6 +16,14 @@ struct Monitor {
 
 class MonitorManager {
 public:
+    MonitorManager();
+
+    void Initialize();
+    void Cleanup();
+
+    wl_list m_Outputs;
+    wl_listener m_NewOutput;
+
     static void HandleNewOutput(wl_listener *listener, void *data);
     static void HandleOutputDestroy(wl_listener *listener, void *data);
     static void HandleOutputRequestState(wl_listener *listener, void *data);

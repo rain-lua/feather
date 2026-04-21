@@ -18,7 +18,6 @@ Compositor::Compositor() {
 	m_DataDeviceManager = wlr_data_device_manager_create(m_Display);
     m_OutputLayout = wlr_output_layout_create(m_Display);
 
-    wl_list_init(&m_Outputs);
     wl_list_init(&m_Pointers);
 
     m_RequestCursor.notify = MouseManager::SeatRequestCursor;
@@ -54,11 +53,9 @@ bool Compositor::Initialize() {
     m_WindowManager.Initialize();
     m_LayoutManager.Initialize();
     m_DecorationManager.Initialize();
+    m_MonitorManager.Initialize();
 
     //todo: more managers here
-
-    m_NewOutput.notify = MonitorManager::HandleNewOutput;
-    wl_signal_add(&m_Backend->events.new_output, &m_NewOutput);
 
     // well rn we will just handle shit there <3
 
@@ -119,6 +116,7 @@ void Compositor::Cleanup() {
     m_WindowManager.Cleanup();
     m_LayoutManager.Cleanup();
     m_DecorationManager.Cleanup();
+    m_MonitorManager.Cleanup();
 
     //todo: more managers here
 
@@ -127,7 +125,7 @@ void Compositor::Cleanup() {
     wl_list_remove(&m_PointerFocusChange.link);
     wl_list_remove(&m_RequestSetSelection.link);
 
-    wl_list_remove(&m_NewOutput.link);
+
 
     // also we removed destroying the seat here for now. it was causing a segmentation fault
     // wlr_seat_destroy(m_Seat);

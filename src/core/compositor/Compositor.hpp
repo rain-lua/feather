@@ -6,6 +6,7 @@
 #include "../input/InputManager.hpp"
 #include "../input/managers/KeyboardManager.hpp"
 #include "../input/managers/MouseManager.hpp"
+#include "../output/MonitorManager.hpp"
 #include "./managers/WindowManager.hpp"
 #include "./managers/LayoutManager.hpp"
 #include "./managers/DecorationManager.hpp"
@@ -37,6 +38,7 @@ public:
     WindowManager m_WindowManager;
     LayoutManager m_LayoutManager;
     DecorationManager m_DecorationManager;
+    MonitorManager m_MonitorManager;
 
 	wlr_cursor *m_Cursor;
 	wlr_xcursor_manager *m_CursorManager;
@@ -46,14 +48,12 @@ public:
 	wl_listener m_CursorAxis;
 	wl_listener m_CursorFrame;
 
-    wl_list m_Outputs;
     wl_list m_Pointers;
 
     wl_listener m_RequestCursor;
 	wl_listener m_PointerFocusChange;
 	wl_listener m_RequestSetSelection;
     CursorMode m_CursorMode;
-    wl_listener m_NewOutput;
     wlr_seat *m_Seat;
 
     std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;
