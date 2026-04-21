@@ -24,24 +24,27 @@ public:
     wlr_renderer *m_Renderer;
     wlr_allocator *m_Allocator;
     wlr_compositor *m_Compositor;
-    // hmmm.. SubCompositor or Subcompositor?
     wlr_subcompositor *m_SubCompositor;
     wlr_data_device_manager *m_DataDeviceManager;
+
     wlr_scene *m_Scene;
     wlr_scene_output_layout *m_SceneLayout;
-    wlr_output_layout *m_OutputLayout;
 
+    wlr_output_layout *m_OutputLayout;
     wlr_xdg_shell *m_XDGShell;
 
-    InputManager m_InputManager;
-    KeyboardManager m_KeyboardManager;
+    MonitorManager m_MonitorManager;
+
     WindowManager m_WindowManager;
     LayoutManager m_LayoutManager;
     DecorationManager m_DecorationManager;
-    MonitorManager m_MonitorManager;
+
+    InputManager m_InputManager;
+    KeyboardManager m_KeyboardManager;
 
 	wlr_cursor *m_Cursor;
 	wlr_xcursor_manager *m_CursorManager;
+
 	wl_listener m_CursorMotion;
 	wl_listener m_CursorMotionAbsolute;
 	wl_listener m_CursorButton;
@@ -53,6 +56,7 @@ public:
     wl_listener m_RequestCursor;
 	wl_listener m_PointerFocusChange;
 	wl_listener m_RequestSetSelection;
+    
     CursorMode m_CursorMode;
     wlr_seat *m_Seat;
 
