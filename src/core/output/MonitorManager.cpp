@@ -22,6 +22,7 @@ void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
     wlr_output_init_render(wlr_output, g_pCompositor->m_Allocator, g_pCompositor->m_Renderer);
 
     wlr_output_state state;
+
     wlr_output_state_init(&state);
     wlr_output_state_set_enabled(&state, true);
 
@@ -38,12 +39,11 @@ void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
     monitor->m_WlrOutput = wlr_output;
 
     monitor->m_Frame.notify = MonitorManager::HandleOutputFrame;
-    wl_signal_add(&wlr_output->events.frame, &monitor->m_Frame);
-
     monitor->m_RequestState.notify = MonitorManager::HandleOutputRequestState;
-    wl_signal_add(&wlr_output->events.request_state, &monitor->m_RequestState);
-
     monitor->m_Destroy.notify = MonitorManager::HandleOutputDestroy;
+
+    wl_signal_add(&wlr_output->events.frame, &monitor->m_Frame);
+    wl_signal_add(&wlr_output->events.request_state, &monitor->m_RequestState);
     wl_signal_add(&wlr_output->events.destroy, &monitor->m_Destroy);
 
     wl_list_insert(&g_pCompositor->m_MonitorManager.m_Outputs, &monitor->m_Link);
@@ -62,6 +62,7 @@ void MonitorManager::HandleOutputDestroy(wl_listener *listener, void *data) {
     wl_list_remove(&monitor->m_RequestState.link);
     wl_list_remove(&monitor->m_Destroy.link);
     wl_list_remove(&monitor->m_Link);
+
     free(monitor);
 }
 

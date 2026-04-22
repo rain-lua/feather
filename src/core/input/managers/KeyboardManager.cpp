@@ -8,7 +8,10 @@ KeyboardManager::KeyboardManager() {
 }
 
 void KeyboardManager::Initialize() {
-    // we don't have to do anything here yet
+    m_Layout = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
+
+    m_RepeatRate = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
+    m_RepeatDelay = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
 }
 
 void KeyboardManager::Cleanup() {
@@ -21,14 +24,9 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     Keyboard *keyboard = (Keyboard *)calloc(1, sizeof(*keyboard));
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
-    std::string layout = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
-
-    int repeat_rate = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
-    int repeat_delay = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
-
     xkb_rule_names names;
     memset(&names, 0, sizeof(names));
-    names.layout = layout.c_str(); 
+    names.layout = g_pCompositor->m_KeyboardManager.m_Layout.c_str(); 
 
     xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     xkb_keymap *keymap = xkb_keymap_new_from_names(context, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
@@ -37,15 +35,14 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     xkb_keymap_unref(keymap);
     xkb_context_unref(context);
 
-    wlr_keyboard_set_repeat_info(wlr_keyboard, repeat_rate, repeat_delay);
+    wlr_keyboard_set_repeat_info(wlr_keyboard, g_pCompositor->m_KeyboardManager.m_RepeatRate, g_pCompositor->m_KeyboardManager.m_RepeatDelay);
 
     keyboard->m_Modifiers.notify = KeyboardManager::HandleKeyboardModifiers;
-    wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->m_Modifiers);
-
     keyboard->m_Key.notify = KeyboardManager::HandleKeyboardKey;
-    wl_signal_add(&wlr_keyboard->events.key, &keyboard->m_Key);
-
     keyboard->m_Destroy.notify = KeyboardManager::HandleKeyboardDestroy;
+
+    wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->m_Modifiers);
+    wl_signal_add(&wlr_keyboard->events.key, &keyboard->m_Key);
     wl_signal_add(&device->events.destroy, &keyboard->m_Destroy);
 
     wlr_seat_set_keyboard(g_pCompositor->m_Seat, keyboard->m_WlrKeyboard);
