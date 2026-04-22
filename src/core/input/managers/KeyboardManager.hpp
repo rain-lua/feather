@@ -21,6 +21,11 @@ public:
 
     wl_list m_Keyboards;
 
+    std::string m_Layout;
+
+    int m_RepeatRate;
+    int m_RepeatDelay;
+
     static void HandleNewKeyboard(wlr_input_device *device);
     static void HandleKeyboardDestroy(wl_listener *listener, void *data);
     static void HandleKeyboardKey(wl_listener *listener, void *data);

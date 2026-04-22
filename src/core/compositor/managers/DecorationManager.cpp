@@ -4,7 +4,7 @@
 #include <cstdlib>
 
 DecorationManager::DecorationManager() {
-
+    // we don't have to do anything here yet
 }
 
 void DecorationManager::Initialize() {

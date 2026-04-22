@@ -16,6 +16,7 @@ public:
     Compositor();
     
     bool Initialize();
+    
     void Run();
     void Cleanup();
 
