@@ -4,11 +4,11 @@
 #include "../../util/Util.hpp"
 
 LayoutManager::LayoutManager() {
-    m_MasterFact = 0.5f;
+    // we don't have to do anything here yet
 }
 
 void LayoutManager::Initialize() {
-    // we don't have to do anything here yet
+    m_MasterFact = 0.5f;
 }
 
 void LayoutManager::Cleanup() {
