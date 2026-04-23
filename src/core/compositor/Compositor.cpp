@@ -39,10 +39,6 @@ bool Compositor::Initialize() {
     m_KeyboardManager.Initialize();
     m_MouseManager.Initialize();
 
-    // todo: more managers here
-
-    // well rn we will just handle shit there <3
-
     const char *socket = wl_display_add_socket_auto(m_Display);
     if (!socket || !wlr_backend_start(m_Backend)) return false;
 
