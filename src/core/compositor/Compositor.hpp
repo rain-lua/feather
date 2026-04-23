@@ -42,23 +42,8 @@ public:
 
     InputManager m_InputManager;
     KeyboardManager m_KeyboardManager;
+    MouseManager m_MouseManager;
 
-	wlr_cursor *m_Cursor;
-	wlr_xcursor_manager *m_CursorManager;
-
-	wl_listener m_CursorMotion;
-	wl_listener m_CursorMotionAbsolute;
-	wl_listener m_CursorButton;
-	wl_listener m_CursorAxis;
-	wl_listener m_CursorFrame;
-
-    wl_list m_Pointers;
-
-    wl_listener m_RequestCursor;
-	wl_listener m_PointerFocusChange;
-	wl_listener m_RequestSetSelection;
-    
-    CursorMode m_CursorMode;
     wlr_seat *m_Seat;
 
     std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;

@@ -3,8 +3,6 @@
 
 #include "../../../include/Defines.hpp"
 
-class Compositor;
-
 struct Pointer {
     wlr_input_device *m_Device;
 
@@ -20,6 +18,28 @@ enum CursorMode {
 
 class MouseManager {
 public:
+    MouseManager();
+
+    void Initialize();
+    void Cleanup();
+
+    wl_list m_Pointers;
+
+    wlr_xcursor_manager *m_XCursorManager;
+	wlr_cursor *m_Cursor;
+	
+	wl_listener m_CursorMotion;
+	wl_listener m_CursorMotionAbsolute;
+	wl_listener m_CursorButton;
+	wl_listener m_CursorAxis;
+	wl_listener m_CursorFrame;
+
+    wl_listener m_RequestCursor;
+	wl_listener m_PointerFocusChange;
+	wl_listener m_RequestSetSelection;
+    
+    CursorMode m_CursorMode;
+
     static void HandleNewPointer(wlr_input_device *device);
     static void HandlePointerDestroy(wl_listener *listener, void *data);
     static void SeatRequestCursor(wl_listener *listener, void *data);
