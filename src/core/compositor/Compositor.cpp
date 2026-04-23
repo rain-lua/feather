@@ -71,9 +71,6 @@ void Compositor::Cleanup() {
 
     m_MonitorManager.Cleanup();
 
-    //todo: more managers here
-
-
     wlr_scene_node_destroy(&m_Scene->tree.node);
     wlr_allocator_destroy(m_Allocator);
     wlr_renderer_destroy(m_Renderer);
