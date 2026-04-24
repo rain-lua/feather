@@ -21,7 +21,7 @@ void KeyboardManager::Cleanup() {
 void KeyboardManager::HandleNewKeyboard(wlr_input_device *device) {
     wlr_keyboard *wlr_keyboard = wlr_keyboard_from_input_device(device);
 
-    Keyboard *keyboard = (Keyboard *)calloc(1, sizeof(*keyboard));
+    Keyboard *keyboard = new Keyboard();
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
     xkb_rule_names names;
@@ -58,7 +58,7 @@ void KeyboardManager::HandleKeyboardDestroy(wl_listener *listener, void *data) {
     wl_list_remove(&keyboard->m_Destroy.link);
     wl_list_remove(&keyboard->m_Link);
 
-    free(keyboard);
+    delete keyboard;
 }
 
 static bool HandleKeybinding(xkb_keysym_t sym, uint32_t mods) {
