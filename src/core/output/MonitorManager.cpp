@@ -35,7 +35,7 @@ void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
     wlr_output_commit_state(wlr_output, &state);
     wlr_output_state_finish(&state);
 
-    Monitor *monitor = (Monitor *)calloc(1, sizeof(*monitor));
+    Monitor *monitor = new Monitor();
     monitor->m_WlrOutput = wlr_output;
 
     monitor->m_Frame.notify = MonitorManager::HandleOutputFrame;
@@ -63,7 +63,7 @@ void MonitorManager::HandleOutputDestroy(wl_listener *listener, void *data) {
     wl_list_remove(&monitor->m_Destroy.link);
     wl_list_remove(&monitor->m_Link);
 
-    free(monitor);
+    delete monitor;
 }
 
 void MonitorManager::HandleOutputRequestState(wl_listener *listener, void *data) {

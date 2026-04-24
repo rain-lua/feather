@@ -24,7 +24,7 @@ void DecorationManager::HandleNewDecoration(wl_listener *listener, void *data) {
 
     if (!wlr_decoration) return;
 
-    Decoration *deco = (Decoration *)calloc(1, sizeof(*deco));
+    Decoration *deco = new Decoration();
     if (!deco) return;
 
     deco->m_Decoration = wlr_decoration;
@@ -55,5 +55,5 @@ void DecorationManager::HandleDecorationDestroy(wl_listener *listener, void *dat
     wl_list_remove(&deco->m_RequestMode.link);
     wl_list_remove(&deco->m_Destroy.link);
 
-    free(deco);
+    delete deco;
 }

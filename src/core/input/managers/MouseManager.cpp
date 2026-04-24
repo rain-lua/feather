@@ -69,7 +69,7 @@ void MouseManager::HandlePointerDestroy(wl_listener *listener, void *data) {
     wl_list_remove(&pointer->m_Destroy.link);
     wl_list_remove(&pointer->m_Link);
 
-    free(pointer);
+    delete pointer;
 }
 
 void MouseManager::SeatRequestCursor(wl_listener *listener, void *data) {
