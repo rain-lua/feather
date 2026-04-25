@@ -18,6 +18,12 @@ Compositor::Compositor() {
 	m_DataDeviceManager = wlr_data_device_manager_create(m_Display);
     m_OutputLayout = wlr_output_layout_create(m_Display);
 
+    m_XWayland = wlr_xwayland_create(m_Display, m_Compositor, true);
+
+    if (!m_XWayland) {
+        log_warn("XWayland initialization failed.");
+    }
+
     m_Scene = wlr_scene_create();
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
     m_Seat = wlr_seat_create(m_Display, "seat0");

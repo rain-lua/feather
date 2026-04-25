@@ -27,11 +27,14 @@ public:
     wlr_compositor *m_Compositor;
     wlr_subcompositor *m_SubCompositor;
     wlr_data_device_manager *m_DataDeviceManager;
+    wlr_output_layout *m_OutputLayout;
+
+    wlr_xwayland *m_XWayland;
 
     wlr_scene *m_Scene;
     wlr_scene_output_layout *m_SceneLayout;
+    wlr_seat *m_Seat;
 
-    wlr_output_layout *m_OutputLayout;
     wlr_xdg_shell *m_XDGShell;
 
     MonitorManager m_MonitorManager;
@@ -43,8 +46,6 @@ public:
     InputManager m_InputManager;
     KeyboardManager m_KeyboardManager;
     MouseManager m_MouseManager;
-
-    wlr_seat *m_Seat;
 
     std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;
 };
