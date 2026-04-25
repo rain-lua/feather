@@ -21,7 +21,7 @@ void LayoutManager::Tile() {
     }
 
     wlr_box box;
-    wlr_output_layout_get_box(g_pCompositor->m_OutputLayout, NULL, &box);
+    wlr_output_layout_get_box(g_pCompositor->m_OutputLayout, nullptr, &box);
 
     int width = box.width;
     int height = box.height;

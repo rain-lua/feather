@@ -28,7 +28,7 @@ void MonitorManager::HandleNewOutput(wl_listener *listener, void *data) {
 
     wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
 
-    if (mode != NULL) {
+    if (mode != nullptr) {
         wlr_output_state_set_mode(&state, mode);
     }
 
@@ -79,7 +79,7 @@ void MonitorManager::HandleOutputFrame(wl_listener *listener, void *data){
     wlr_scene *scene = g_pCompositor->m_Scene;
     
     wlr_scene_output *scene_output = wlr_scene_get_scene_output(scene, monitor->m_WlrOutput);
-    wlr_scene_output_commit(scene_output, NULL);
+    wlr_scene_output_commit(scene_output, nullptr);
 
     timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
