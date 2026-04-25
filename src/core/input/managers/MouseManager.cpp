@@ -84,7 +84,7 @@ void MouseManager::SeatRequestCursor(wl_listener *listener, void *data) {
 void MouseManager::SeatPointerFocusChange(wl_listener *listener, void *data) {
 	wlr_seat_pointer_focus_change_event *event = static_cast<wlr_seat_pointer_focus_change_event *>(data);
 
-	if (event->new_surface == NULL) {
+	if (event->new_surface == nullptr) {
 		wlr_cursor_set_xcursor(g_pCompositor->m_MouseManager.m_Cursor, g_pCompositor->m_MouseManager.m_XCursorManager, "default");
 	}
 }
@@ -109,7 +109,7 @@ void MouseManager::ProcessCursorMotion(uint32_t time) {
 
     double sx, sy;
     wlr_seat *seat = g_pCompositor->m_Seat;
-    wlr_surface *surface = NULL;
+    wlr_surface *surface = nullptr;
 
     wlr_scene_node *node = wlr_scene_node_at(&g_pCompositor->m_Scene->tree.node, g_pCompositor->m_MouseManager.m_Cursor->x, g_pCompositor->m_MouseManager.m_Cursor->y, &sx, &sy);
 

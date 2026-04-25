@@ -19,7 +19,7 @@ void WindowManager::Cleanup() {
 }
 
 void WindowManager::FocusWindow(Window *window) {
-	if (window == NULL) {
+	if (window == nullptr) {
 		return;
 	}
 	
@@ -33,7 +33,7 @@ void WindowManager::FocusWindow(Window *window) {
 
 	if (prev_surface) {
 		struct wlr_xdg_toplevel *prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
-		if (prev_window != NULL) {
+		if (prev_window != nullptr) {
 			wlr_xdg_toplevel_set_activated(prev_window, false);
 		}
 	}
@@ -47,7 +47,7 @@ void WindowManager::FocusWindow(Window *window) {
 	g_pCompositor->m_WindowManager.m_FocusedWindow = window;
 	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
 
-	if (keyboard != NULL) {
+	if (keyboard != nullptr) {
 	    wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
 	}
 }
@@ -63,22 +63,22 @@ void WindowManager::CloseWindow(Window *window) {
 Window *WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface, double *sx, double *sy) {
 	wlr_scene_node *node = wlr_scene_node_at( &g_pCompositor->m_Scene->tree.node, lx, ly, sx, sy);
 
-	if (node == NULL || node->type != WLR_SCENE_NODE_BUFFER) {
-		return NULL;
+	if (node == nullptr || node->type != WLR_SCENE_NODE_BUFFER) {
+		return nullptr;
 	}
 
 	wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
 	wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
 
 	if (!scene_surface) {
-		return NULL;
+		return nullptr;
 	}
 
 	*surface = scene_surface->surface;
 
 	wlr_scene_tree *tree = node->parent;
 
-	while (tree != NULL && tree->node.data == NULL) {
+	while (tree != nullptr && tree->node.data == nullptr) {
 		tree = tree->node.parent;
 	}
 
