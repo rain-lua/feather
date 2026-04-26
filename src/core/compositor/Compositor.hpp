@@ -20,22 +20,22 @@ public:
     void Run();
     void Cleanup();
 
-    wl_display *m_Display;
-    wlr_backend *m_Backend;
-    wlr_renderer *m_Renderer;
-    wlr_allocator *m_Allocator;
-    wlr_compositor *m_Compositor;
-    wlr_subcompositor *m_SubCompositor;
-    wlr_data_device_manager *m_DataDeviceManager;
-    wlr_output_layout *m_OutputLayout;
+    wl_display* m_Display;
+    wlr_backend* m_Backend;
+    wlr_renderer* m_Renderer;
+    wlr_allocator* m_Allocator;
+    wlr_compositor* m_Compositor;
+    wlr_subcompositor* m_SubCompositor;
+    wlr_data_device_manager* m_DataDeviceManager;
+    wlr_output_layout* m_OutputLayout;
 
-    wlr_xwayland *m_XWayland;
+    wlr_xwayland* m_XWayland;
 
-    wlr_scene *m_Scene;
-    wlr_scene_output_layout *m_SceneLayout;
-    wlr_seat *m_Seat;
+    wlr_scene* m_Scene;
+    wlr_scene_output_layout* m_SceneLayout;
+    wlr_seat* m_Seat;
 
-    wlr_xdg_shell *m_XDGShell;
+    wlr_xdg_shell* m_XDGShell;
 
     MonitorManager m_MonitorManager;
 

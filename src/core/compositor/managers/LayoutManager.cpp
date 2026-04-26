@@ -27,19 +27,19 @@ void LayoutManager::Tile() {
     int height = box.height;
 
     if (wl_list_length(&g_pCompositor->m_WindowManager.m_Windows) == 1) {
-        Window *w = wl_container_of(g_pCompositor->m_WindowManager.m_Windows.next, w, m_Link);
+        Window* w = wl_container_of(g_pCompositor->m_WindowManager.m_Windows.next, w, m_Link);
         
         wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
         wlr_xdg_toplevel_set_size(w->m_XDGToplevel, width, height);
         return;
     }
 
-    int master_width = (int)(width * m_MasterFact);
+    int master_width = (int)(width* m_MasterFact);
     int stack_count = wl_list_length(&g_pCompositor->m_WindowManager.m_Windows) - 1;
     int stack_width = width - master_width;
     int stack_height = height / stack_count;
 
-    Window *w;
+    Window* w;
     int i = 0;
 
     wl_list_for_each(w, &g_pCompositor->m_WindowManager.m_Windows, m_Link) {

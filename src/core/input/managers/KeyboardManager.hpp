@@ -5,7 +5,7 @@
 
 struct Keyboard {
     wl_list m_Link;
-    wlr_keyboard *m_WlrKeyboard;
+    wlr_keyboard* m_WlrKeyboard;
     
     wl_listener m_Modifiers;
     wl_listener m_Key;
@@ -26,10 +26,10 @@ public:
     int m_RepeatRate;
     int m_RepeatDelay;
 
-    static void HandleNewKeyboard(wlr_input_device *device);
-    static void HandleKeyboardDestroy(wl_listener *listener, void *data);
-    static void HandleKeyboardKey(wl_listener *listener, void *data);
-    static void HandleKeyboardModifiers(wl_listener *listener, void *data);
+    static void HandleNewKeyboard(wlr_input_device* device);
+    static void HandleKeyboardDestroy(wl_listener* listener, void* data);
+    static void HandleKeyboardKey(wl_listener* listener, void* data);
+    static void HandleKeyboardModifiers(wl_listener* listener, void* data);
 };
 
 #endif

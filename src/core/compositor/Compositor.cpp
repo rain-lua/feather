@@ -45,7 +45,7 @@ bool Compositor::Initialize() {
     m_KeyboardManager.Initialize();
     m_MouseManager.Initialize();
 
-    const char *socket = wl_display_add_socket_auto(m_Display);
+    const char* socket = wl_display_add_socket_auto(m_Display);
     if (!socket || !wlr_backend_start(m_Backend)) return false;
 
     setenv("WAYLAND_DISPLAY", socket, 1);
