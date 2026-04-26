@@ -6,7 +6,7 @@
 #include "../compositor/managers/WindowManager.hpp"
 #include "../../include/Defines.hpp"
 
-void Spawn(const char *cmd) {
+void Spawn(const char* cmd) {
     pid_t pid = fork();
     if (pid < 0) return;  
 

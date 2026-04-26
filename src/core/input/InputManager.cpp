@@ -17,8 +17,8 @@ void InputManager::Cleanup() {
     wl_list_remove(&m_NewInput.link);
 }
 
-void InputManager::HandleNewInput(wl_listener *listener, void *data) {
-    wlr_input_device *device = static_cast<wlr_input_device *>(data);
+void InputManager::HandleNewInput(wl_listener* listener, void* data) {
+    wlr_input_device* device = static_cast<wlr_input_device *>(data);
 
     switch (device->type) {
         case WLR_INPUT_DEVICE_KEYBOARD:

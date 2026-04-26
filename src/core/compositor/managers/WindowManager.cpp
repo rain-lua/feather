@@ -18,27 +18,27 @@ void WindowManager::Cleanup() {
 	wl_list_remove(&m_NewWindow.link);
 }
 
-void WindowManager::FocusWindow(Window *window) {
+void WindowManager::FocusWindow(Window* window) {
 	if (window == nullptr) {
 		return;
 	}
 	
-	wlr_seat *seat = g_pCompositor->m_Seat;
-	wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
-	wlr_surface *surface = window->m_XDGToplevel->base->surface;
+	wlr_seat* seat = g_pCompositor->m_Seat;
+	wlr_surface* prev_surface = seat->keyboard_state.focused_surface;
+	wlr_surface* surface = window->m_XDGToplevel->base->surface;
 
 	if (prev_surface == surface) {
 		return;
 	}
 
 	if (prev_surface) {
-		struct wlr_xdg_toplevel *prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
+		struct wlr_xdg_toplevel* prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
 		if (prev_window != nullptr) {
 			wlr_xdg_toplevel_set_activated(prev_window, false);
 		}
 	}
 
-	wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
+	wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
 
 	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
 	wl_list_remove(&window->m_Link);
@@ -52,7 +52,7 @@ void WindowManager::FocusWindow(Window *window) {
 	}
 }
 
-void WindowManager::CloseWindow(Window *window) {
+void WindowManager::CloseWindow(Window* window) {
 	if (window == nullptr || window->m_XDGToplevel == nullptr) {
         return;
     }
@@ -60,15 +60,15 @@ void WindowManager::CloseWindow(Window *window) {
     wlr_xdg_toplevel_send_close(window->m_XDGToplevel);
 }
 
-Window *WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface, double *sx, double *sy) {
-	wlr_scene_node *node = wlr_scene_node_at( &g_pCompositor->m_Scene->tree.node, lx, ly, sx, sy);
+Window* WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface, double* sx, double* sy) {
+	wlr_scene_node* node = wlr_scene_node_at( &g_pCompositor->m_Scene->tree.node, lx, ly, sx, sy);
 
 	if (node == nullptr || node->type != WLR_SCENE_NODE_BUFFER) {
 		return nullptr;
 	}
 
-	wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
-	wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
+	wlr_scene_buffer* scene_buffer = wlr_scene_buffer_from_node(node);
+	wlr_scene_surface* scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
 
 	if (!scene_surface) {
 		return nullptr;
@@ -76,7 +76,7 @@ Window *WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface,
 
 	*surface = scene_surface->surface;
 
-	wlr_scene_tree *tree = node->parent;
+	wlr_scene_tree* tree = node->parent;
 
 	while (tree != nullptr && tree->node.data == nullptr) {
 		tree = tree->node.parent;
@@ -85,12 +85,12 @@ Window *WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface,
 	return static_cast<Window*>(tree->node.data);
 }
 
-void WindowManager::HandleNewWindow(wl_listener *listener, void *data) {
+void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
 	log_debug("New window!");
 
-	wlr_xdg_toplevel *XDG_Toplevel = static_cast<wlr_xdg_toplevel *>(data);
+	wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel *>(data);
 
-	Window *window = new Window();
+	Window* window = new Window();
 	window->m_XDGToplevel = XDG_Toplevel;
 	window->m_SceneTree = wlr_scene_xdg_surface_create(&g_pCompositor->m_Scene->tree, XDG_Toplevel->base);
 	window->m_SceneTree->node.data = window;
@@ -116,60 +116,60 @@ void WindowManager::HandleNewWindow(wl_listener *listener, void *data) {
 	wl_signal_add(&XDG_Toplevel->events.request_fullscreen, &window->m_RequestFullscreen);
 }
 
-void WindowManager::HandleWindowMap(wl_listener *listener, void *data) {
+void WindowManager::HandleWindowMap(wl_listener* listener, void* data) {
 	log_debug("Window map");
 
-    Window *window = wl_container_of(listener, window, m_Map);
+    Window* window = wl_container_of(listener, window, m_Map);
 	wl_list_insert(&g_pCompositor->m_WindowManager.m_Windows, &window->m_Link);
 
     g_pCompositor->m_LayoutManager.Tile();
 	g_pCompositor->m_WindowManager.FocusWindow(window);
 }
 
-void WindowManager::HandleWindowUnmap(wl_listener *listener, void *data) {
-    Window *window = wl_container_of(listener, window, m_Unmap);
+void WindowManager::HandleWindowUnmap(wl_listener* listener, void* data) {
+    Window* window = wl_container_of(listener, window, m_Unmap);
 
 	wl_list_remove(&window->m_Link);
 	g_pCompositor->m_LayoutManager.Tile();
 }
 
-void WindowManager::HandleWindowCommit(wl_listener *listener, void *data) {
-    Window *window = wl_container_of(listener, window, m_Commit);
+void WindowManager::HandleWindowCommit(wl_listener* listener, void* data) {
+    Window* window = wl_container_of(listener, window, m_Commit);
 
 	if (window->m_XDGToplevel->base->initial_commit) {
 		wlr_xdg_toplevel_set_size(window->m_XDGToplevel, 0, 0);
 	}
 }
 
-void WindowManager::HandleWindowRequestMove(wl_listener *listener, void *data) {
-	Window *window = wl_container_of(listener, window, m_RequestMove);
+void WindowManager::HandleWindowRequestMove(wl_listener* listener, void* data) {
+	Window* window = wl_container_of(listener, window, m_RequestMove);
 }
 
-void WindowManager::HandleWindowRequestResize(wl_listener *listener, void *data) {
-	wlr_xdg_toplevel_resize_event *event = static_cast<wlr_xdg_toplevel_resize_event *>(data);
-	Window *window = wl_container_of(listener, window, m_RequestResize);
+void WindowManager::HandleWindowRequestResize(wl_listener* listener, void* data) {
+	wlr_xdg_toplevel_resize_event* event = static_cast<wlr_xdg_toplevel_resize_event *>(data);
+	Window* window = wl_container_of(listener, window, m_RequestResize);
 }
 
-void WindowManager::HandleWindowRequestMaximize(wl_listener *listener, void *data) {
-	Window *window = wl_container_of(listener, window, m_RequestMaximize);
+void WindowManager::HandleWindowRequestMaximize(wl_listener* listener, void* data) {
+	Window* window = wl_container_of(listener, window, m_RequestMaximize);
 
 	if (window->m_XDGToplevel->base->initialized) {
 		wlr_xdg_surface_schedule_configure(window->m_XDGToplevel->base);
 	}
 }
 
-void WindowManager::HandleWindowRequestFullscreen(wl_listener *listener, void *data) {
-	Window *window = wl_container_of(listener, window, m_RequestFullscreen);
+void WindowManager::HandleWindowRequestFullscreen(wl_listener* listener, void* data) {
+	Window* window = wl_container_of(listener, window, m_RequestFullscreen);
 
 	if (window->m_XDGToplevel->base->initialized) {
 		wlr_xdg_surface_schedule_configure(window->m_XDGToplevel->base);
 	}
 }
 
-void WindowManager::HandleWindowDestroy(wl_listener *listener, void *data) {
+void WindowManager::HandleWindowDestroy(wl_listener* listener, void* data) {
 	log_debug("Window destroyed");
 
-    Window *window = wl_container_of(listener, window, m_Destroy);
+    Window* window = wl_container_of(listener, window, m_Destroy);
 
 	if(!wl_list_empty(&g_pCompositor->m_WindowManager.m_Windows)) {
 		g_pCompositor->m_WindowManager.FocusWindow(wl_container_of(g_pCompositor->m_WindowManager.m_Windows.prev, g_pCompositor->m_WindowManager.m_FocusedWindow, m_Link));

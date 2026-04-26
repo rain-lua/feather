@@ -12,7 +12,7 @@ public:
 
     wl_listener m_NewInput;
 
-    static void HandleNewInput(wl_listener *listener, void *data);
+    static void HandleNewInput(wl_listener* listener, void* data);
 };
 
 #endif
