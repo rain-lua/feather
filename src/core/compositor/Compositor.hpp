@@ -15,11 +15,14 @@
 class Compositor {
 public:
     Compositor();
+    ~Compositor();
     
     bool Initialize();
     
     void Run();
     void Cleanup();
+
+    bool m_CleaningUp;
 
     wl_display* m_Display;
     wlr_backend* m_Backend;
