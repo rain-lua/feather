@@ -31,6 +31,12 @@ Compositor::Compositor() {
     m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
 }
 
+Compositor::~Compositor() {
+    if (!m_CleaningUp) {
+        Cleanup();
+    }
+}
+
 bool Compositor::Initialize() {
     if (!m_Backend || !m_Renderer || !m_Allocator) return false;
 
@@ -64,6 +70,7 @@ void Compositor::Run() {
 
 void Compositor::Cleanup() {
     log_info("exiting feather...");
+    m_CleaningUp = true;
 
     wl_display_destroy_clients(m_Display);
 
