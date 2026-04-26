@@ -60,7 +60,7 @@ void WindowManager::CloseWindow(Window* window) {
     wlr_xdg_toplevel_send_close(window->m_XDGToplevel);
 }
 
-Window* WindowManager::FindWindowAt(double lx, double ly, wlr_surface **surface, double* sx, double* sy) {
+Window* WindowManager::FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy) {
 	wlr_scene_node* node = wlr_scene_node_at( &g_pCompositor->m_Scene->tree.node, lx, ly, sx, sy);
 
 	if (node == nullptr || node->type != WLR_SCENE_NODE_BUFFER) {

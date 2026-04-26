@@ -34,7 +34,7 @@ public:
 	void FocusWindow(Window* window);
 	void CloseWindow(Window* window);
 
-	Window* FindWindowAt(double lx, double ly, wlr_surface **surface, double* sx, double* sy);
+	Window* FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
 	
     static void HandleNewWindow(wl_listener* listener, void* data);
     static void HandleWindowMap(wl_listener* listener, void* data);
