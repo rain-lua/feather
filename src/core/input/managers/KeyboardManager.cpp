@@ -45,7 +45,7 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device* device) {
     wl_signal_add(&wlr_keyboard->events.key, &keyboard->m_Key);
     wl_signal_add(&device->events.destroy, &keyboard->m_Destroy);
 
-    wlr_seat_set_keyboard(g_pCompositor->m_Seat, keyboard->m_WlrKeyboard);
+    wlr_seat_set_keyboard(g_pCompositor->m_SeatManager.m_Seat, keyboard->m_WlrKeyboard);
     wl_list_insert(&g_pCompositor->m_KeyboardManager.m_Keyboards, &keyboard->m_Link);
 }
 
@@ -87,7 +87,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener* listener, void* data) {
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Key);
 
     wlr_keyboard_key_event* event = static_cast<wlr_keyboard_key_event *>(data);
-    wlr_seat* seat = g_pCompositor->m_Seat;
+    wlr_seat* seat = g_pCompositor->m_SeatManager.m_Seat;
 
     uint32_t keycode = ToXKBKeycode(event->keycode);
     const xkb_keysym_t* syms;
@@ -118,6 +118,6 @@ void KeyboardManager::HandleKeyboardKey(wl_listener* listener, void* data) {
 void KeyboardManager::HandleKeyboardModifiers(wl_listener* listener, void* data) {
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Modifiers);
 
-    wlr_seat_set_keyboard(g_pCompositor->m_Seat, keyboard->m_WlrKeyboard);
-    wlr_seat_keyboard_notify_modifiers(g_pCompositor->m_Seat, &keyboard->m_WlrKeyboard->modifiers);
+    wlr_seat_set_keyboard(g_pCompositor->m_SeatManager.m_Seat, keyboard->m_WlrKeyboard);
+    wlr_seat_keyboard_notify_modifiers(g_pCompositor->m_SeatManager.m_Seat, &keyboard->m_WlrKeyboard->modifiers);
 }

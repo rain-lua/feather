@@ -23,7 +23,7 @@ void WindowManager::FocusWindow(Window* window) {
 		return;
 	}
 	
-	wlr_seat* seat = g_pCompositor->m_Seat;
+	wlr_seat* seat = g_pCompositor->m_SeatManager.m_Seat;
 	wlr_surface* prev_surface = seat->keyboard_state.focused_surface;
 	wlr_surface* surface = window->m_XDGToplevel->base->surface;
 

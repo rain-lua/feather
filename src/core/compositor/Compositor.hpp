@@ -4,6 +4,7 @@
 #include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
 #include "../input/InputManager.hpp"
+#include "../input/managers/SeatManager.hpp"
 #include "../input/managers/KeyboardManager.hpp"
 #include "../input/managers/MouseManager.hpp"
 #include "../output/MonitorManager.hpp"
@@ -44,6 +45,7 @@ public:
     DecorationManager m_DecorationManager;
 
     InputManager m_InputManager;
+    SeatManager m_SeatManager;
     KeyboardManager m_KeyboardManager;
     MouseManager m_MouseManager;
 

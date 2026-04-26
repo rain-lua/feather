@@ -34,17 +34,10 @@ public:
 	wl_listener m_CursorAxis;
 	wl_listener m_CursorFrame;
 
-    wl_listener m_RequestCursor;
-	wl_listener m_PointerFocusChange;
-	wl_listener m_RequestSetSelection;
-    
     CursorMode m_CursorMode;
 
     static void HandleNewPointer(wlr_input_device* device);
     static void HandlePointerDestroy(wl_listener* listener, void* data);
-    static void SeatRequestCursor(wl_listener* listener, void* data);
-    static void SeatPointerFocusChange(wl_listener* listener, void* data);
-    static void SeatRequestSetSelection(wl_listener* listener, void* data);
     static void ResetCursorMode();
     static void ProcessCursorMotion(uint32_t time);
     static void HandleCursorMotion(wl_listener* listener, void* data);

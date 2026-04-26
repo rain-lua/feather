@@ -27,19 +27,11 @@ void MouseManager::Initialize() {
     m_CursorAxis.notify = MouseManager::HandleCursorAxis;
     m_CursorFrame.notify = MouseManager::HandleCursorFrame;
 
-    m_RequestCursor.notify = MouseManager::SeatRequestCursor;
-    m_RequestSetSelection.notify = MouseManager::SeatRequestSetSelection;
-    m_PointerFocusChange.notify  = MouseManager::SeatPointerFocusChange;
-
     wl_signal_add(&m_Cursor->events.motion, &m_CursorMotion);
     wl_signal_add(&m_Cursor->events.motion_absolute, &m_CursorMotionAbsolute);
     wl_signal_add(&m_Cursor->events.button, &m_CursorButton);
     wl_signal_add(&m_Cursor->events.axis, &m_CursorAxis);
     wl_signal_add(&m_Cursor->events.frame, &m_CursorFrame);
-
-    wl_signal_add(&g_pCompositor->m_Seat->events.request_set_cursor, &m_RequestCursor);
-    wl_signal_add(&g_pCompositor->m_Seat->pointer_state.events.focus_change, &m_PointerFocusChange);
-    wl_signal_add(&g_pCompositor->m_Seat->events.request_set_selection, &m_RequestSetSelection);
 }
 
 void MouseManager::Cleanup() {
@@ -48,10 +40,6 @@ void MouseManager::Cleanup() {
     wl_list_remove(&m_CursorButton.link);
     wl_list_remove(&m_CursorAxis.link);
     wl_list_remove(&m_CursorFrame.link);
-
-    wl_list_remove(&m_RequestCursor.link);
-    wl_list_remove(&m_PointerFocusChange.link);
-    wl_list_remove(&m_RequestSetSelection.link);
 
     wlr_xcursor_manager_destroy(m_XCursorManager);
     wlr_cursor_destroy(m_Cursor);
@@ -72,28 +60,6 @@ void MouseManager::HandlePointerDestroy(wl_listener* listener, void* data) {
     delete pointer;
 }
 
-void MouseManager::SeatRequestCursor(wl_listener* listener, void* data) {
-	wlr_seat_pointer_request_set_cursor_event* event = static_cast<wlr_seat_pointer_request_set_cursor_event *>(data);
-	wlr_seat_client* focused_client = g_pCompositor->m_Seat->pointer_state.focused_client;
-
-	if (focused_client == event->seat_client) {
-		wlr_cursor_set_surface(g_pCompositor->m_MouseManager.m_Cursor, event->surface, event->hotspot_x, event->hotspot_y);
-	}
-}
-
-void MouseManager::SeatPointerFocusChange(wl_listener* listener, void* data) {
-	wlr_seat_pointer_focus_change_event* event = static_cast<wlr_seat_pointer_focus_change_event *>(data);
-
-	if (event->new_surface == nullptr) {
-		wlr_cursor_set_xcursor(g_pCompositor->m_MouseManager.m_Cursor, g_pCompositor->m_MouseManager.m_XCursorManager, "default");
-	}
-}
-
-void MouseManager::SeatRequestSetSelection(wl_listener* listener, void* data) {
-	wlr_seat_request_set_selection_event* event = static_cast<wlr_seat_request_set_selection_event *>(data);
-	wlr_seat_set_selection(g_pCompositor->m_Seat, event->source, event->serial);
-}
-
 void MouseManager::ResetCursorMode() {
     g_pCompositor->m_MouseManager.m_CursorMode = CURSOR_PASSTHROUGH;
 }
@@ -108,7 +74,7 @@ void MouseManager::ProcessCursorMotion(uint32_t time) {
     }
 
     double sx, sy;
-    wlr_seat* seat = g_pCompositor->m_Seat;
+    wlr_seat* seat = g_pCompositor->m_SeatManager.m_Seat;
     wlr_surface* surface = nullptr;
 
     wlr_scene_node* node = wlr_scene_node_at(&g_pCompositor->m_Scene->tree.node, g_pCompositor->m_MouseManager.m_Cursor->x, g_pCompositor->m_MouseManager.m_Cursor->y, &sx, &sy);
@@ -150,7 +116,7 @@ void MouseManager::HandleCursorMotionAbsolute(wl_listener* listener, void* data)
 
 void MouseManager::HandleCursorButton(wl_listener* listener, void* data) {
 	wlr_pointer_button_event* event = static_cast<wlr_pointer_button_event *>(data);
-	wlr_seat_pointer_notify_button(g_pCompositor->m_Seat, event->time_msec, event->button, event->state);
+	wlr_seat_pointer_notify_button(g_pCompositor->m_SeatManager.m_Seat, event->time_msec, event->button, event->state);
 
 	if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
 		MouseManager::ResetCursorMode();
@@ -167,9 +133,9 @@ void MouseManager::HandleCursorButton(wl_listener* listener, void* data) {
 
 void MouseManager::HandleCursorAxis(wl_listener* listener, void* data) {
 	wlr_pointer_axis_event* event = static_cast<wlr_pointer_axis_event *>(data);
-	wlr_seat_pointer_notify_axis(g_pCompositor->m_Seat, event->time_msec, event->orientation, event->delta, event->delta_discrete, event->source, event->relative_direction);
+	wlr_seat_pointer_notify_axis(g_pCompositor->m_SeatManager.m_Seat, event->time_msec, event->orientation, event->delta, event->delta_discrete, event->source, event->relative_direction);
 }
 
 void MouseManager::HandleCursorFrame(wl_listener* listener, void* data) {
-	wlr_seat_pointer_notify_frame(g_pCompositor->m_Seat);
+	wlr_seat_pointer_notify_frame(g_pCompositor->m_SeatManager.m_Seat);
 }

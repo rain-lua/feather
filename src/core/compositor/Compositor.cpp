@@ -26,7 +26,6 @@ Compositor::Compositor() {
 
     m_Scene = wlr_scene_create();
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
-    m_Seat = wlr_seat_create(m_Display, "seat0");
 
     m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
     m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
@@ -42,6 +41,7 @@ bool Compositor::Initialize() {
     m_DecorationManager.Initialize();
 
     m_InputManager.Initialize();
+    m_SeatManager.Initialize();
     m_KeyboardManager.Initialize();
     m_MouseManager.Initialize();
 
@@ -73,6 +73,7 @@ void Compositor::Cleanup() {
 
     m_MouseManager.Cleanup();
     m_KeyboardManager.Cleanup();
+    m_SeatManager.Cleanup();
     m_InputManager.Cleanup();
 
     m_MonitorManager.Cleanup();

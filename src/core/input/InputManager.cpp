@@ -17,8 +17,8 @@ void InputManager::Cleanup() {
     wl_list_remove(&m_NewInput.link);
 }
 
-void InputManager::HandleNewInput(wl_listener* listener, void* data) {
-    wlr_input_device* device = static_cast<wlr_input_device *>(data);
+void InputManager::HandleNewInput(wl_listener *listener, void *data) {
+    wlr_input_device *device = static_cast<wlr_input_device *>(data);
 
     switch (device->type) {
         case WLR_INPUT_DEVICE_KEYBOARD:
@@ -35,9 +35,10 @@ void InputManager::HandleNewInput(wl_listener* listener, void* data) {
     }
 
     uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
+    
     if (!wl_list_empty(&g_pCompositor->m_KeyboardManager.m_Keyboards)) {
         caps |= WL_SEAT_CAPABILITY_KEYBOARD;
     }
     
-    wlr_seat_set_capabilities(g_pCompositor->m_Seat, caps);
+    wlr_seat_set_capabilities(g_pCompositor->m_SeatManager.m_Seat, caps);
 }
