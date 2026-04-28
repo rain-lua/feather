@@ -37,7 +37,9 @@ Compositor::~Compositor() {
 }
 
 bool Compositor::Initialize() {
-    if (!m_Backend || !m_Renderer || !m_Allocator) return false;
+    if (!m_Backend || !m_Renderer || !m_Allocator) {   
+        return false;
+    }
 
     m_ConfigManager.Initialize();
     m_MonitorManager.Initialize();
@@ -52,7 +54,10 @@ bool Compositor::Initialize() {
     m_MouseManager.Initialize();
 
     const char* socket = wl_display_add_socket_auto(m_Display);
-    if (!socket || !wlr_backend_start(m_Backend)) return false;
+
+    if (!socket || !wlr_backend_start(m_Backend)) {
+        return false;
+    }
 
     setenv("WAYLAND_DISPLAY", socket, 1);
 

@@ -30,5 +30,13 @@ return {
         -- Delay before key repeat starts in milliseconds
         -- Default: 600
         repeat_delay = 600
+    },
+
+    layout = {
+        layout = "master"
+    },
+
+    master = {
+        mFact = 0.5
     }
 }

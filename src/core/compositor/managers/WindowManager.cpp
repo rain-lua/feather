@@ -32,7 +32,8 @@ void WindowManager::FocusWindow(Window* window) {
 	}
 
 	if (prev_surface) {
-		struct wlr_xdg_toplevel* prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
+		wlr_xdg_toplevel* prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
+		
 		if (prev_window != nullptr) {
 			wlr_xdg_toplevel_set_activated(prev_window, false);
 		}
@@ -48,7 +49,7 @@ void WindowManager::FocusWindow(Window* window) {
 	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
 
 	if (keyboard != nullptr) {
-	    wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
+        wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
 	}
 }
 

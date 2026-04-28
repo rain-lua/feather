@@ -90,10 +90,15 @@ void ConfigManager::Initialize() {
     EnsureUserConfigExists();
 
     Tree* input = m_RootTree.AddTree("input");
+    Tree* layout = m_RootTree.AddTree("layout");
+    Tree* master = m_RootTree.AddTree("master");
 
     input->AddLeaf("layout", Leaf(std::string("us")));
     input->AddLeaf("repeat_rate", Leaf(25));
     input->AddLeaf("repeat_delay", Leaf(600));
+
+    layout->AddLeaf("layout", Leaf(std::string("master")));
+    master->AddLeaf("mFact", Leaf(0.5f));
 
     Load(m_ConfigPath);
 }
