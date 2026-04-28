@@ -9,9 +9,9 @@ KeyboardManager::KeyboardManager() {
 }
 
 void KeyboardManager::Initialize() {
-    m_Layout = g_pCompositor->m_ConfigManager.GetString("input.layout");
-    m_RepeatRate = g_pCompositor->m_ConfigManager.GetInt("input.repeat_rate");
-    m_RepeatDelay = g_pCompositor->m_ConfigManager.GetInt("input.repeat_delay");
+    m_Layout = g_pCompositor->m_ConfigManager.GetString("input.keyboard.layout");
+    m_RepeatRate = g_pCompositor->m_ConfigManager.GetInt("input.keyboard.repeat_rate");
+    m_RepeatDelay = g_pCompositor->m_ConfigManager.GetInt("input.keyboard.repeat_delay");
 }
 
 void KeyboardManager::Cleanup() {

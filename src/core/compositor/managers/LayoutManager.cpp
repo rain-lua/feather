@@ -9,7 +9,7 @@ LayoutManager::LayoutManager() {
 
 void LayoutManager::Initialize() {
     m_Layout = g_pCompositor->m_ConfigManager.GetString("layout.layout");
-    m_MasterFact = g_pCompositor->m_ConfigManager.GetFloat("master.mFact");
+    m_MasterFact = g_pCompositor->m_ConfigManager.GetFloat("layout.master.mFact");
 }
 
 void LayoutManager::Cleanup() {
