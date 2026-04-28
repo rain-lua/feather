@@ -8,7 +8,8 @@ LayoutManager::LayoutManager() {
 }
 
 void LayoutManager::Initialize() {
-    m_MasterFact = 0.5f;
+    m_Layout = g_pCompositor->m_ConfigManager.GetString("layout.layout");
+    m_MasterFact = g_pCompositor->m_ConfigManager.GetFloat("master.mFact");
 }
 
 void LayoutManager::Cleanup() {
@@ -26,30 +27,32 @@ void LayoutManager::Tile() {
     int width = box.width;
     int height = box.height;
 
-    if (wl_list_length(&g_pCompositor->m_WindowManager.m_Windows) == 1) {
-        Window* w = wl_container_of(g_pCompositor->m_WindowManager.m_Windows.next, w, m_Link);
-        
-        wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
-        wlr_xdg_toplevel_set_size(w->m_XDGToplevel, width, height);
-        return;
-    }
+    if (m_Layout == "master") {
+        if (wl_list_length(&g_pCompositor->m_WindowManager.m_Windows) == 1) {
+                Window* w = wl_container_of(g_pCompositor->m_WindowManager.m_Windows.next, w, m_Link);
+                
+                wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
+                wlr_xdg_toplevel_set_size(w->m_XDGToplevel, width, height);
+                return;
+            }
 
-    int master_width = (int)(width* m_MasterFact);
-    int stack_count = wl_list_length(&g_pCompositor->m_WindowManager.m_Windows) - 1;
-    int stack_width = width - master_width;
-    int stack_height = height / stack_count;
+            int master_width = (int)(width* m_MasterFact);
+            int stack_count = wl_list_length(&g_pCompositor->m_WindowManager.m_Windows) - 1;
+            int stack_width = width - master_width;
+            int stack_height = height / stack_count;
 
-    Window* w;
-    int i = 0;
+            Window* w;
+            int i = 0;
 
-    wl_list_for_each(w, &g_pCompositor->m_WindowManager.m_Windows, m_Link) {
-        if (i == 0) {
-            wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
-            wlr_xdg_toplevel_set_size(w->m_XDGToplevel, master_width, height);
-        } else {
-            wlr_scene_node_set_position(&w->m_SceneTree->node,box.x + master_width, box.y + (i - 1) * stack_height);
-            wlr_xdg_toplevel_set_size(w->m_XDGToplevel, stack_width, stack_height);
-        }
-        i++;
+            wl_list_for_each(w, &g_pCompositor->m_WindowManager.m_Windows, m_Link) {
+                if (i == 0) {
+                    wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
+                    wlr_xdg_toplevel_set_size(w->m_XDGToplevel, master_width, height);
+                } else {
+                    wlr_scene_node_set_position(&w->m_SceneTree->node,box.x + master_width, box.y + (i - 1) * stack_height);
+                    wlr_xdg_toplevel_set_size(w->m_XDGToplevel, stack_width, stack_height);
+                }
+                i++;
+            }
     }
 }

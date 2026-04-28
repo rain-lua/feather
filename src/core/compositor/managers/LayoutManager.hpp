@@ -11,7 +11,8 @@ public:
 
     void Initialize();
     void Cleanup();
-
+    
+    std::string m_Layout;
     float m_MasterFact;
 
     void Tile();
