@@ -36,10 +36,11 @@ public:
 
     CursorMode m_CursorMode;
 
+    void ResetCursorMode();
+    void ProcessCursorMotion(uint32_t time);
+
     static void HandleNewPointer(wlr_input_device* device);
     static void HandlePointerDestroy(wl_listener* listener, void* data);
-    static void ResetCursorMode();
-    static void ProcessCursorMotion(uint32_t time);
     static void HandleCursorMotion(wl_listener* listener, void* data);
     static void HandleCursorMotionAbsolute(wl_listener* listener, void* data);
     static void HandleCursorButton(wl_listener* listener, void* data);

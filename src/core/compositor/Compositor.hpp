@@ -41,6 +41,7 @@ public:
 
     wlr_xdg_shell* m_XDGShell;
 
+    ConfigManager m_ConfigManager;
     MonitorManager m_MonitorManager;
 
     WindowManager m_WindowManager;
@@ -51,8 +52,6 @@ public:
     SeatManager m_SeatManager;
     KeyboardManager m_KeyboardManager;
     MouseManager m_MouseManager;
-
-    ConfigManager m_ConfigManager;
 };
 
 inline std::unique_ptr<Compositor> g_pCompositor;

@@ -45,21 +45,6 @@ void MouseManager::Cleanup() {
     wlr_cursor_destroy(m_Cursor);
 }
 
-void MouseManager::HandleNewPointer(wlr_input_device* device) {
-    wlr_cursor_attach_input_device(g_pCompositor->m_MouseManager.m_Cursor, device);
-}
-
-void MouseManager::HandlePointerDestroy(wl_listener* listener, void* data) {
-    log_info("--- Pointer Disconnected ---");
-
-    Pointer* pointer = wl_container_of(listener, pointer, m_Destroy);
-
-    wl_list_remove(&pointer->m_Destroy.link);
-    wl_list_remove(&pointer->m_Link);
-
-    delete pointer;
-}
-
 void MouseManager::ResetCursorMode() {
     g_pCompositor->m_MouseManager.m_CursorMode = CURSOR_PASSTHROUGH;
 }
@@ -100,18 +85,33 @@ void MouseManager::ProcessCursorMotion(uint32_t time) {
     }
 }
 
+void MouseManager::HandleNewPointer(wlr_input_device* device) {
+    wlr_cursor_attach_input_device(g_pCompositor->m_MouseManager.m_Cursor, device);
+}
+
+void MouseManager::HandlePointerDestroy(wl_listener* listener, void* data) {
+    log_info("--- Pointer Disconnected ---");
+
+    Pointer* pointer = wl_container_of(listener, pointer, m_Destroy);
+
+    wl_list_remove(&pointer->m_Destroy.link);
+    wl_list_remove(&pointer->m_Link);
+
+    delete pointer;
+}
+
 void MouseManager::HandleCursorMotion(wl_listener* listener, void* data) {
 	wlr_pointer_motion_event* event = static_cast<wlr_pointer_motion_event *>(data);
 
 	wlr_cursor_move(g_pCompositor->m_MouseManager.m_Cursor, &event->pointer->base, event->delta_x, event->delta_y);
-	MouseManager::ProcessCursorMotion(event->time_msec);
+	g_pCompositor->m_MouseManager.ProcessCursorMotion(event->time_msec);
 }
 
 void MouseManager::HandleCursorMotionAbsolute(wl_listener* listener, void* data){
 	wlr_pointer_motion_absolute_event* event = static_cast<wlr_pointer_motion_absolute_event *>(data);
 
 	wlr_cursor_warp_absolute(g_pCompositor->m_MouseManager.m_Cursor, &event->pointer->base, event->x, event->y);
-	MouseManager::ProcessCursorMotion(event->time_msec);
+	g_pCompositor->m_MouseManager.ProcessCursorMotion(event->time_msec);
 }
 
 void MouseManager::HandleCursorButton(wl_listener* listener, void* data) {
@@ -119,7 +119,7 @@ void MouseManager::HandleCursorButton(wl_listener* listener, void* data) {
 	wlr_seat_pointer_notify_button(g_pCompositor->m_SeatManager.m_Seat, event->time_msec, event->button, event->state);
 
 	if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
-		MouseManager::ResetCursorMode();
+		g_pCompositor->m_MouseManager.ResetCursorMode();
 	} else {
         double sx;
         double sy;
