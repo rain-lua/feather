@@ -12,22 +12,18 @@ void Leaf::SetFromLua(lua_State* L, int idx) {
     switch (m_Type) {
         case INT:
             m_I = (int)lua_tointeger(L, idx);
-            log_debug("Leaf::SetFromLua -> INT = %d", m_I);
             break;
 
         case FLOAT:
             m_F = (float)lua_tonumber(L, idx);
-            log_debug("Leaf::SetFromLua -> FLOAT = %.3f", m_F);
             break;
 
         case BOOL:
             m_B = lua_toboolean(L, idx);
-            log_debug("Leaf::SetFromLua -> BOOL = %s", m_B ? "true" : "false");
             break;
 
         case STRING:
             m_S = lua_tostring(L, idx) ? lua_tostring(L, idx) : "";
-            log_debug("Leaf::SetFromLua -> STRING = %s", m_S.c_str());
             break;
     }
 }
@@ -57,7 +53,6 @@ Tree* Tree::AddTree(const std::string& key) {
 
     if (!ref) {
         ref = std::make_unique<Tree>();
-        log_info("Created tree '%s'", key.c_str());
     }
 
     return ref.get();
@@ -68,14 +63,12 @@ Leaf* Tree::AddLeaf(const std::string& key, Leaf leaf) {
 
     if (!ref) {
         ref = std::make_unique<Leaf>(leaf);
-        log_info("Created leaf '%s'", key.c_str());
     }
 
     return ref.get();
 }
 
 ConfigManager::ConfigManager() {
-    log_info("Initializing Lua state");
     m_State = luaL_newstate();
     luaL_openlibs(m_State);
 }
@@ -93,8 +86,6 @@ void ConfigManager::Initialize() {
     }
 
     m_ConfigPath = std::string(home) + "/.config/feather/feather.lua";
-
-    log_info("Using config path: %s", m_ConfigPath.c_str());
 
     EnsureUserConfigExists();
 
@@ -217,9 +208,6 @@ void ConfigManager::ParseTable(int index, Tree* node) {
         }
 
         std::string key = lua_tostring(m_State, -2);
-
-        log_debug("Parsing key: %s", key.c_str());
-
         Leaf* leaf = node->GetLeaf(key);
 
         if (leaf) {
