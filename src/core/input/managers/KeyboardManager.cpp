@@ -2,16 +2,16 @@
 #include "../../compositor/Compositor.hpp"
 #include "../../../debug/Debug.hpp"
 #include "../../util/Util.hpp"
+#include <iostream>
 
 KeyboardManager::KeyboardManager() {
     wl_list_init(&m_Keyboards);
 }
 
 void KeyboardManager::Initialize() {
-    m_Layout = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("layout")->GetString();
-
-    m_RepeatRate = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_rate")->GetInt();
-    m_RepeatDelay = g_pCompositor->m_ConfigManager->GetRootTree()->GetLeaf("repeat_delay")->GetInt();
+    m_Layout = g_pCompositor->m_ConfigManager.GetString("input.layout");
+    m_RepeatRate = g_pCompositor->m_ConfigManager.GetInt("input.repeat_rate");
+    m_RepeatDelay = g_pCompositor->m_ConfigManager.GetInt("input.repeat_delay");
 }
 
 void KeyboardManager::Cleanup() {

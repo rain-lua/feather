@@ -1,4 +1,5 @@
 .PHONY: default all prebuild build clean
+
 default: prebuild all
 
 prebuild:
@@ -23,17 +24,7 @@ endif
 CFLAGS_PKG := $(shell $(PKG_CONFIG) --cflags $(PKGS))
 LIBS_PKG   := $(shell $(PKG_CONFIG) --libs $(PKGS))
 
-LUA_VERSIONS := lua lua5.4 lua5.3 lua5.2 lua5.1 luajit
-
-LUA_PKG := $(firstword \
-  $(foreach v,$(LUA_VERSIONS), \
-    $(if $(shell $(PKG_CONFIG) --exists $(v) 2>/dev/null && echo $(v)),$(v)) \
-  ) \
-)
-
-ifeq ($(LUA_PKG),)
-  $(error No Lua installation found. Tried: $(LUA_VERSIONS))
-endif
+LUA_PKG := lua5.5
 
 CFLAGS_LUA := $(shell $(PKG_CONFIG) --cflags $(LUA_PKG))
 LIBS_LUA   := $(shell $(PKG_CONFIG) --libs $(LUA_PKG))

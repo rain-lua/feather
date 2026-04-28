@@ -52,7 +52,7 @@ public:
     KeyboardManager m_KeyboardManager;
     MouseManager m_MouseManager;
 
-    std::shared_ptr<FeatherConfig::ConfigManager> m_ConfigManager;
+    ConfigManager m_ConfigManager;
 };
 
 inline std::unique_ptr<Compositor> g_pCompositor;

@@ -28,7 +28,6 @@ Compositor::Compositor() {
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
 
     m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
-    m_ConfigManager = std::make_shared<FeatherConfig::ConfigManager>();
 }
 
 Compositor::~Compositor() {
@@ -40,6 +39,7 @@ Compositor::~Compositor() {
 bool Compositor::Initialize() {
     if (!m_Backend || !m_Renderer || !m_Allocator) return false;
 
+    m_ConfigManager.Initialize();
     m_MonitorManager.Initialize();
 
     m_WindowManager.Initialize();
@@ -74,16 +74,17 @@ void Compositor::Cleanup() {
 
     wl_display_destroy_clients(m_Display);
 
-    m_DecorationManager.Cleanup();
-    m_LayoutManager.Cleanup();
-    m_WindowManager.Cleanup();
-
     m_MouseManager.Cleanup();
     m_KeyboardManager.Cleanup();
     m_SeatManager.Cleanup();
     m_InputManager.Cleanup();
 
+    m_DecorationManager.Cleanup();
+    m_LayoutManager.Cleanup();
+    m_WindowManager.Cleanup();
+
     m_MonitorManager.Cleanup();
+    m_ConfigManager.Cleanup();
 
     wlr_scene_node_destroy(&m_Scene->tree.node);
     wlr_allocator_destroy(m_Allocator);
