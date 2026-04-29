@@ -69,12 +69,14 @@ Leaf* Tree::AddLeaf(const std::string& key, Leaf leaf) {
 }
 
 ConfigManager::ConfigManager() {
+    m_RootTree = std::make_unique<Tree>();
+
     m_State = luaL_newstate();
     luaL_openlibs(m_State);
 }
 
 Tree* ConfigManager::Root() {
-    return &m_RootTree;
+    return m_RootTree.get();
 }
 
 void ConfigManager::Initialize() {
@@ -89,8 +91,8 @@ void ConfigManager::Initialize() {
 
     EnsureUserConfigExists();
 
-    Tree* input = m_RootTree.AddTree("input");
-    Tree* layout = m_RootTree.AddTree("layout");
+    Tree* input = m_RootTree->AddTree("input");
+    Tree* layout = m_RootTree->AddTree("layout");
 
     Tree* master = layout->AddTree("master");
     Tree* keyboard = input->AddTree("keyboard");
@@ -135,7 +137,7 @@ bool ConfigManager::Load(const std::string& path) {
         return false;
     }
 
-    ParseTable(-1, &m_RootTree);
+    ParseTable(-1, m_RootTree.get());
     lua_pop(m_State, 1);
 
     log_info("Config loaded successfully");
@@ -143,7 +145,7 @@ bool ConfigManager::Load(const std::string& path) {
 }
 
 Leaf* ConfigManager::GetLeafFromPath(const std::string& path) {
-    Tree* node = &m_RootTree;
+    Tree* node = m_RootTree.get();
 
     size_t start = 0;
     size_t end = 0;
