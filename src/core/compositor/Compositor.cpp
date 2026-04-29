@@ -5,6 +5,18 @@
 #include "../output/MonitorManager.hpp"
 #include "../input/InputManager.hpp"
 
+#include <signal.h>
+
+static int HandleSignal(int sig, void* data) {
+    log_info("Received signal %d (%s)", sig, strsignal(sig));
+
+    if (sig == SIGINT || sig == SIGTERM) {
+        g_pCompositor->Stop();
+    }
+
+    return 0;
+}
+
 Compositor::Compositor() {
     m_Display = wl_display_create();
     m_EventLoop = wl_display_get_event_loop(m_Display);
@@ -54,6 +66,9 @@ bool Compositor::Initialize() {
     m_SeatManager.Initialize();
     m_KeyboardManager.Initialize();
     m_MouseManager.Initialize();
+    
+    wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
+    wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
 
     const char* socket = wl_display_add_socket_auto(m_Display);
 

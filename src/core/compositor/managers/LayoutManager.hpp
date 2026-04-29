@@ -2,8 +2,6 @@
 
 #include "../../../include/Defines.hpp"
 
-class Compositor;
-
 class LayoutManager {
 public:
     LayoutManager();
