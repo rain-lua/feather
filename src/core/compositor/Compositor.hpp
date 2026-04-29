@@ -18,8 +18,9 @@ public:
     ~Compositor();
     
     bool Initialize();
-    
     void Run();
+    
+    void Stop();
     void Cleanup();
 
     bool m_CleaningUp;
