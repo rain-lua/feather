@@ -35,7 +35,7 @@ void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
     wlr_output_commit_state(wlr_output, &state);
     wlr_output_state_finish(&state);
 
-    Monitor* monitor = new Monitor();
+    Monitor* monitor = new Monitor;
     monitor->m_WlrOutput = wlr_output;
 
     monitor->m_Frame.notify = MonitorManager::HandleOutputFrame;

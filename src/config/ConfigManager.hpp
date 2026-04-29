@@ -57,7 +57,7 @@ public:
     std::string m_ConfigPath;
 
     lua_State* m_State;
-    Tree m_RootTree;
+    std::unique_ptr<Tree> m_RootTree;
 
     Leaf* GetLeafFromPath(const std::string& path);
 

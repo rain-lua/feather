@@ -91,7 +91,7 @@ void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
 
 	wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel *>(data);
 
-	Window* window = new Window();
+	Window* window = new Window;
 	window->m_XDGToplevel = XDG_Toplevel;
 	window->m_SceneTree = wlr_scene_xdg_surface_create(&g_pCompositor->m_Scene->tree, XDG_Toplevel->base);
 	window->m_SceneTree->node.data = window;

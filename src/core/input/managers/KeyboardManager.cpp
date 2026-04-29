@@ -21,7 +21,7 @@ void KeyboardManager::Cleanup() {
 void KeyboardManager::HandleNewKeyboard(wlr_input_device* device) {
     wlr_keyboard* wlr_keyboard = wlr_keyboard_from_input_device(device);
 
-    Keyboard* keyboard = new Keyboard();
+    Keyboard* keyboard = new Keyboard;
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
     xkb_rule_names names;
