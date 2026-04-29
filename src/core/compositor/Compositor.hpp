@@ -1,5 +1,4 @@
-#ifndef COMPOSITOR_H
-#define COMPOSITOR_H
+#pragma once
 
 #include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
@@ -27,7 +26,7 @@ public:
 
     wl_display* m_Display;
     wl_event_loop* m_EventLoop;
-    
+
     wlr_backend* m_Backend;
     wlr_renderer* m_Renderer;
     wlr_allocator* m_Allocator;
@@ -58,5 +57,3 @@ public:
 };
 
 inline std::unique_ptr<Compositor> g_pCompositor;
-
-#endif

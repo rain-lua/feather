@@ -1,5 +1,4 @@
-#ifndef MOUSE_MANAGER_H
-#define MOUSE_MANAGER_H
+#pragma once
 
 #include "../../../include/Defines.hpp"
 
@@ -47,5 +46,3 @@ public:
     static void HandleCursorAxis(wl_listener* listener, void* data);
     static void HandleCursorFrame(wl_listener* listener, void* data);
 };
-
-#endif

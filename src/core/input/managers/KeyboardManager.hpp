@@ -1,5 +1,4 @@
-#ifndef KEYBOARD_MANAGER_H
-#define KEYBOARD_MANAGER_H
+#pragma once
 
 #include "../../../include/Defines.hpp"
 
@@ -31,5 +30,3 @@ public:
     static void HandleKeyboardKey(wl_listener* listener, void* data);
     static void HandleKeyboardModifiers(wl_listener* listener, void* data);
 };
-
-#endif

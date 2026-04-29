@@ -1,5 +1,4 @@
-#ifndef CONFIG_MANAGER_H
-#define CONFIG_MANAGER_H
+#pragma once
 
 #include <lua.hpp>
 #include <string>
@@ -64,5 +63,3 @@ public:
     void ParseTable(int index, Tree* node);
     void ParseValue(int index, Leaf* leaf);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SEAT_MANAGER_H
-#define SEAT_MANAGER_H
+#pragma once
 
 #include "../../../include/Defines.hpp"
 
@@ -20,5 +19,3 @@ public:
     static void SeatPointerFocusChange(wl_listener* listener, void* data);
     static void SeatRequestSetSelection(wl_listener* listener, void* data);
 };
-
-#endif

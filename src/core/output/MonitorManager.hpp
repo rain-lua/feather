@@ -1,5 +1,4 @@
-#ifndef MONITOR_MANAGER_H
-#define MONITOR_MANAGER_H
+#pragma once
 
 #include "../../include/Defines.hpp"
 
@@ -27,5 +26,3 @@ public:
     static void HandleOutputRequestState(wl_listener* listener, void* data);
     static void HandleOutputFrame(wl_listener* listener, void* data);
 };
-
-#endif

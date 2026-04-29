@@ -1,5 +1,4 @@
-#ifndef DEBUG_H
-#define DEBUG_H
+#pragma once
 
 enum class LogLevel {
     DEBUG,
@@ -16,5 +15,3 @@ void log_info(const char* fmt, ...)     __attribute__((format(printf, 1, 2)));
 void log_warn(const char* fmt, ...)     __attribute__((format(printf, 1, 2)));
 void log_error(const char* fmt, ...)    __attribute__((format(printf, 1, 2)));
 void log_critical(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
-
-#endif

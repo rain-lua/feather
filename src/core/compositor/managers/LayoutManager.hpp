@@ -1,5 +1,4 @@
-#ifndef LAYOUT_MANAGER_H
-#define LAYOUT_MANAGER_H
+#pragma once
 
 #include "../../../include/Defines.hpp"
 
@@ -17,5 +16,3 @@ public:
 
     void Tile();
 };
-
-#endif

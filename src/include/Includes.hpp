@@ -1,5 +1,4 @@
-#ifndef INCLUDES_H
-#define INCLUDES_H
+#pragma once
 
 #include <iostream>
 #include <getopt.h>    
@@ -40,5 +39,3 @@ extern "C" {
 #undef class
 #undef namespace
 #undef static
-
-#endif

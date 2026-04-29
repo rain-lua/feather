@@ -1,5 +1,4 @@
-#ifndef DECORATION_MANAGER_H
-#define DECORATION_MANAGER_H
+#pragma once
 
 #include "../../../include/Defines.hpp"
 
@@ -24,5 +23,3 @@ public:
     static void HandleDecorationDestroy(wl_listener* listener, void* data);
     static void HandleRequestMode(wl_listener* listener, void* data);
 };
-
-#endif

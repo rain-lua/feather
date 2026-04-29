@@ -1,5 +1,4 @@
-#ifndef WINDOW_MANAGER_H
-#define WINDOW_MANAGER_H
+#pragma once
 
 #include "../../../include/Defines.hpp"
 
@@ -46,5 +45,3 @@ public:
 	static void HandleWindowRequestMaximize(wl_listener* listener, void* data);
 	static void HandleWindowRequestFullscreen(wl_listener* listener, void* data);
 };
-
-#endif
