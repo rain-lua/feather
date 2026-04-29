@@ -62,7 +62,7 @@ bool Compositor::Initialize() {
     setenv("WAYLAND_DISPLAY", socket, 1);
 
     log_info("========================================");
-    log_info(" feather initialized");
+    log_info(" Feather initialized!");
     log_info(" socket: %s", socket);
     log_info("========================================");
 
@@ -70,11 +70,24 @@ bool Compositor::Initialize() {
 }
 
 void Compositor::Run() {
+    log_info("Running Feather...");
+
     wl_display_run(m_Display);
 }
 
+void Compositor::Stop() {
+    log_info("Stopping Feather...");
+
+    wl_display_terminate(m_Display);
+}
+
 void Compositor::Cleanup() {
-    log_info("exiting feather...");
+    log_info("Exiting Feather...");
+
+    if (!m_Display) {
+        return;
+    }
+
     m_CleaningUp = true;
 
     wl_display_destroy_clients(m_Display);
