@@ -7,7 +7,9 @@
 
 Compositor::Compositor() {
     m_Display = wl_display_create();
-    m_Backend = wlr_backend_autocreate(wl_display_get_event_loop(m_Display), nullptr);
+    m_EventLoop = wl_display_get_event_loop(m_Display);
+    
+    m_Backend = wlr_backend_autocreate(m_EventLoop, nullptr);
     m_Renderer = wlr_renderer_autocreate(m_Backend);
 
     wlr_renderer_init_wl_display(m_Renderer, m_Display);

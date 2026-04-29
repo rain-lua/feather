@@ -19,13 +19,15 @@ public:
     
     bool Initialize();
     void Run();
-    
+
     void Stop();
     void Cleanup();
 
     bool m_CleaningUp;
 
     wl_display* m_Display;
+    wl_event_loop* m_EventLoop;
+    
     wlr_backend* m_Backend;
     wlr_renderer* m_Renderer;
     wlr_allocator* m_Allocator;
