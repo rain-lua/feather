@@ -101,21 +101,21 @@ void MouseManager::HandlePointerDestroy(wl_listener* listener, void* data) {
 }
 
 void MouseManager::HandleCursorMotion(wl_listener* listener, void* data) {
-	wlr_pointer_motion_event* event = static_cast<wlr_pointer_motion_event *>(data);
+	wlr_pointer_motion_event* event = static_cast<wlr_pointer_motion_event*>(data);
 
 	wlr_cursor_move(g_pCompositor->m_MouseManager.m_Cursor, &event->pointer->base, event->delta_x, event->delta_y);
 	g_pCompositor->m_MouseManager.ProcessCursorMotion(event->time_msec);
 }
 
 void MouseManager::HandleCursorMotionAbsolute(wl_listener* listener, void* data){
-	wlr_pointer_motion_absolute_event* event = static_cast<wlr_pointer_motion_absolute_event *>(data);
+	wlr_pointer_motion_absolute_event* event = static_cast<wlr_pointer_motion_absolute_event*>(data);
 
 	wlr_cursor_warp_absolute(g_pCompositor->m_MouseManager.m_Cursor, &event->pointer->base, event->x, event->y);
 	g_pCompositor->m_MouseManager.ProcessCursorMotion(event->time_msec);
 }
 
 void MouseManager::HandleCursorButton(wl_listener* listener, void* data) {
-	wlr_pointer_button_event* event = static_cast<wlr_pointer_button_event *>(data);
+	wlr_pointer_button_event* event = static_cast<wlr_pointer_button_event*>(data);
 	wlr_seat_pointer_notify_button(g_pCompositor->m_SeatManager.m_Seat, event->time_msec, event->button, event->state);
 
 	if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
@@ -132,7 +132,7 @@ void MouseManager::HandleCursorButton(wl_listener* listener, void* data) {
 }
 
 void MouseManager::HandleCursorAxis(wl_listener* listener, void* data) {
-	wlr_pointer_axis_event* event = static_cast<wlr_pointer_axis_event *>(data);
+	wlr_pointer_axis_event* event = static_cast<wlr_pointer_axis_event*>(data);
 	wlr_seat_pointer_notify_axis(g_pCompositor->m_SeatManager.m_Seat, event->time_msec, event->orientation, event->delta, event->delta_discrete, event->source, event->relative_direction);
 }
 

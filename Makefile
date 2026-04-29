@@ -12,13 +12,13 @@ PKG_CONFIG ?= pkg-config
 PKGS := wlroots-0.19 wayland-server xkbcommon
 
 MISSING_PKGS := $(strip \
-  $(foreach p,$(PKGS), \
-    $(if $(shell $(PKG_CONFIG) --exists $(p) 2>/dev/null || echo missing),$(p)) \
-  ) \
+	$(foreach p,$(PKGS), \
+		$(if $(shell $(PKG_CONFIG) --exists $(p) 2>/dev/null || echo missing),$(p)) \
+	) \
 )
 
 ifneq ($(MISSING_PKGS),)
-  $(error Missing required packages: $(MISSING_PKGS))
+	$(error Missing required packages: $(MISSING_PKGS))
 endif
 
 CFLAGS_PKG := $(shell $(PKG_CONFIG) --cflags $(PKGS))
@@ -48,9 +48,9 @@ $(PROTO_FILES): $(XDG_XML)
 	$(WAYLAND_SCANNER) private-code $< $(XDG_CODE)
 
 CXXFLAGS := -g -Werror -DWLR_USE_UNSTABLE \
-  $(CFLAGS_PKG) $(CFLAGS_LUA) \
-  -Isrc/include -Isrc/debug \
-  -I$(BUILD_PROTO_DIR)
+	$(CFLAGS_PKG) $(CFLAGS_LUA) \
+	-Isrc/include -Isrc/debug \
+	-I$(BUILD_PROTO_DIR)
 
 SRC := $(shell find src -name '*.cpp')
 OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))

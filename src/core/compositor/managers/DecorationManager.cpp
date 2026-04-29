@@ -19,7 +19,7 @@ void DecorationManager::Cleanup() {
 }
 
 void DecorationManager::HandleNewDecoration(wl_listener* listener, void* data) {
-    wlr_xdg_toplevel_decoration_v1* wlr_decoration = static_cast<wlr_xdg_toplevel_decoration_v1 *>(data);
+    wlr_xdg_toplevel_decoration_v1* wlr_decoration = static_cast<wlr_xdg_toplevel_decoration_v1*>(data);
     log_debug("New decoration request %p", wlr_decoration);
 
     if (!wlr_decoration) { 

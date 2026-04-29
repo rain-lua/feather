@@ -21,8 +21,8 @@ public:
     wl_listener m_NewDecoration;
 
     static void HandleNewDecoration(wl_listener* listener, void* data);
-    static void HandleRequestMode(wl_listener* listener, void* data);
     static void HandleDecorationDestroy(wl_listener* listener, void* data);
+    static void HandleRequestMode(wl_listener* listener, void* data);
 };
 
 #endif

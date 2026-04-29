@@ -26,7 +26,7 @@ void SeatManager::Cleanup() {
 }
 
 void SeatManager::SeatRequestCursor(wl_listener* listener, void* data) {
-	wlr_seat_pointer_request_set_cursor_event* event = static_cast<wlr_seat_pointer_request_set_cursor_event *>(data);
+	wlr_seat_pointer_request_set_cursor_event* event = static_cast<wlr_seat_pointer_request_set_cursor_event*>(data);
 	wlr_seat_client* focused_client = g_pCompositor->m_SeatManager.m_Seat->pointer_state.focused_client;
 
 	if (focused_client == event->seat_client) {
@@ -35,7 +35,7 @@ void SeatManager::SeatRequestCursor(wl_listener* listener, void* data) {
 }
 
 void SeatManager::SeatPointerFocusChange(wl_listener* listener, void* data) {
-	wlr_seat_pointer_focus_change_event* event = static_cast<wlr_seat_pointer_focus_change_event *>(data);
+	wlr_seat_pointer_focus_change_event* event = static_cast<wlr_seat_pointer_focus_change_event*>(data);
 
 	if (event->new_surface == nullptr) {
 		wlr_cursor_set_xcursor(g_pCompositor->m_MouseManager.m_Cursor, g_pCompositor->m_MouseManager.m_XCursorManager, "default");
@@ -43,6 +43,6 @@ void SeatManager::SeatPointerFocusChange(wl_listener* listener, void* data) {
 }
 
 void SeatManager::SeatRequestSetSelection(wl_listener* listener, void* data) {
-	wlr_seat_request_set_selection_event* event = static_cast<wlr_seat_request_set_selection_event *>(data);
+	wlr_seat_request_set_selection_event* event = static_cast<wlr_seat_request_set_selection_event*>(data);
 	wlr_seat_set_selection(g_pCompositor->m_SeatManager.m_Seat, event->source, event->serial);
 }

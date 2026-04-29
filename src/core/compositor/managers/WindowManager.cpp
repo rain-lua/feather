@@ -89,7 +89,7 @@ Window* WindowManager::FindWindowAt(double lx, double ly, wlr_surface** surface,
 void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
 	log_debug("New window!");
 
-	wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel *>(data);
+	wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel*>(data);
 
 	Window* window = new Window;
 	window->m_XDGToplevel = XDG_Toplevel;
@@ -110,6 +110,7 @@ void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
 	wl_signal_add(&XDG_Toplevel->base->surface->events.map, &window->m_Map);
 	wl_signal_add(&XDG_Toplevel->base->surface->events.unmap, &window->m_Unmap);
 	wl_signal_add(&XDG_Toplevel->base->surface->events.commit, &window->m_Commit);
+
 	wl_signal_add(&XDG_Toplevel->events.destroy, &window->m_Destroy);
 	wl_signal_add(&XDG_Toplevel->events.request_move, &window->m_RequestMove);
 	wl_signal_add(&XDG_Toplevel->events.request_resize, &window->m_RequestResize);
@@ -147,7 +148,7 @@ void WindowManager::HandleWindowRequestMove(wl_listener* listener, void* data) {
 }
 
 void WindowManager::HandleWindowRequestResize(wl_listener* listener, void* data) {
-	wlr_xdg_toplevel_resize_event* event = static_cast<wlr_xdg_toplevel_resize_event *>(data);
+	wlr_xdg_toplevel_resize_event* event = static_cast<wlr_xdg_toplevel_resize_event*>(data);
 	Window* window = wl_container_of(listener, window, m_RequestResize);
 }
 

@@ -16,40 +16,40 @@ void MonitorManager::Cleanup() {
 }
 
 void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
-    wlr_output* wlr_output = static_cast<struct wlr_output *>(data);
-    log_info("--- New Monitor Connected: %s ---", wlr_output->name);
+    wlr_output* output = static_cast<wlr_output*>(data);
+    log_info("--- New Monitor Connected: %s ---", output->name);
 
-    wlr_output_init_render(wlr_output, g_pCompositor->m_Allocator, g_pCompositor->m_Renderer);
+    wlr_output_init_render(output, g_pCompositor->m_Allocator, g_pCompositor->m_Renderer);
 
     wlr_output_state state;
 
     wlr_output_state_init(&state);
     wlr_output_state_set_enabled(&state, true);
 
-    wlr_output_mode* mode = wlr_output_preferred_mode(wlr_output);
+    wlr_output_mode* mode = wlr_output_preferred_mode(output);
 
     if (mode != nullptr) {
         wlr_output_state_set_mode(&state, mode);
     }
 
-    wlr_output_commit_state(wlr_output, &state);
+    wlr_output_commit_state(output, &state);
     wlr_output_state_finish(&state);
 
     Monitor* monitor = new Monitor;
-    monitor->m_WlrOutput = wlr_output;
+    monitor->m_WlrOutput = output;
 
     monitor->m_Frame.notify = MonitorManager::HandleOutputFrame;
     monitor->m_RequestState.notify = MonitorManager::HandleOutputRequestState;
     monitor->m_Destroy.notify = MonitorManager::HandleOutputDestroy;
 
-    wl_signal_add(&wlr_output->events.frame, &monitor->m_Frame);
-    wl_signal_add(&wlr_output->events.request_state, &monitor->m_RequestState);
-    wl_signal_add(&wlr_output->events.destroy, &monitor->m_Destroy);
+    wl_signal_add(&output->events.frame, &monitor->m_Frame);
+    wl_signal_add(&output->events.request_state, &monitor->m_RequestState);
+    wl_signal_add(&output->events.destroy, &monitor->m_Destroy);
 
     wl_list_insert(&g_pCompositor->m_MonitorManager.m_Outputs, &monitor->m_Link);
 
-    wlr_output_layout_output* l_output = wlr_output_layout_add_auto(g_pCompositor->m_OutputLayout, wlr_output);
-    wlr_scene_output* scene_output = wlr_scene_output_create(g_pCompositor->m_Scene, wlr_output);
+    wlr_output_layout_output* l_output = wlr_output_layout_add_auto(g_pCompositor->m_OutputLayout, output);
+    wlr_scene_output* scene_output = wlr_scene_output_create(g_pCompositor->m_Scene, output);
 
     wlr_scene_output_layout_add_output(g_pCompositor->m_SceneLayout, l_output, scene_output);
 }
@@ -67,10 +67,9 @@ void MonitorManager::HandleOutputDestroy(wl_listener* listener, void* data) {
 }
 
 void MonitorManager::HandleOutputRequestState(wl_listener* listener, void* data) {
-    log_debug("Monitor state requested");
     Monitor* monitor = wl_container_of(listener, monitor, m_RequestState);
     
-    const wlr_output_event_request_state* event = static_cast<wlr_output_event_request_state *>(data);
+    const wlr_output_event_request_state* event = static_cast<wlr_output_event_request_state*>(data);
     wlr_output_commit_state(monitor->m_WlrOutput, event->state);
 }
 

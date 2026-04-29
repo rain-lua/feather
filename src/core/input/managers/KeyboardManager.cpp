@@ -86,7 +86,7 @@ static bool HandleKeybinding(xkb_keysym_t sym, uint32_t mods) {
 void KeyboardManager::HandleKeyboardKey(wl_listener* listener, void* data) {
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Key);
 
-    wlr_keyboard_key_event* event = static_cast<wlr_keyboard_key_event *>(data);
+    wlr_keyboard_key_event* event = static_cast<wlr_keyboard_key_event*>(data);
     wlr_seat* seat = g_pCompositor->m_SeatManager.m_Seat;
 
     uint32_t keycode = ToXKBKeycode(event->keycode);
