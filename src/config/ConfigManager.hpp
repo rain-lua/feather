@@ -46,6 +46,10 @@ public:
     bool Load(const std::string& path);
     void EnsureUserConfigExists();
 
+    static int Config(lua_State* L);
+    
+    void RegisterFeatherAPI();
+
     Tree* Root();
 
     int GetInt(const std::string& path);

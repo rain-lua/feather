@@ -5,7 +5,7 @@
 ## A lightweight experimental Wayland compositor
 
 ![C++](https://img.shields.io/badge/language-C++-blue?style=for-the-badge)
-![Wayland](https://img.shields.io/badge/PROTOCOL-Wayland-darkblue?style=for-the-badge)
+![Wayland](https://img.shields.io/badge/protocol-Wayland-darkblue?style=for-the-badge)
 ![Status](https://img.shields.io/badge/state-early%20development-orange?style=for-the-badge)
 
 </div>

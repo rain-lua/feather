@@ -1,4 +1,6 @@
 #include "ConfigManager.hpp"
+#include "../core/compositor/Compositor.hpp"
+#include "../core/util/Util.hpp"
 #include "../debug/Debug.hpp"
 #include <fstream>
 #include <cstdlib>
@@ -73,6 +75,8 @@ ConfigManager::ConfigManager() {
 
     m_State = luaL_newstate();
     luaL_openlibs(m_State);
+
+    RegisterFeatherAPI();
 }
 
 Tree* ConfigManager::Root() {
@@ -124,21 +128,12 @@ bool ConfigManager::Load(const std::string& path) {
         return false;
     }
 
-    if (lua_pcall(m_State, 0, 1, 0) != LUA_OK) {
+    if (lua_pcall(m_State, 0, 0, 0) != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
         log_error("Runtime failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
         return false;
     }
-
-    if (!lua_istable(m_State, -1)) {
-        log_error("Config must return a table");
-        lua_pop(m_State, 1);
-        return false;
-    }
-
-    ParseTable(-1, m_RootTree.get());
-    lua_pop(m_State, 1);
 
     log_info("Config loaded successfully");
     return true;
@@ -208,9 +203,11 @@ std::string ConfigManager::GetString(const std::string& path) {
 }
 
 void ConfigManager::ParseTable(int index, Tree* node) {
+    index = lua_absindex(m_State, index);
+
     lua_pushnil(m_State);
 
-    while (lua_next(m_State, index < 0 ? index - 1 : index)) {
+    while (lua_next(m_State, index)) {
         if (!lua_isstring(m_State, -2)) {
             lua_pop(m_State, 1);
             continue;
@@ -273,4 +270,22 @@ void ConfigManager::EnsureUserConfigExists() {
     }
 
     ofs.write(reinterpret_cast<const char*>(FEATHER_DEFAULT_CONFIG_BYTES), sizeof(FEATHER_DEFAULT_CONFIG_BYTES));
+}
+
+int ConfigManager::Config(lua_State* L) {
+    if (!lua_istable(L, 1)) {
+        return luaL_error(L, "feather.config expects a table");
+    }
+
+    g_pCompositor->m_ConfigManager.ParseTable(lua_absindex(L, 1), g_pCompositor->m_ConfigManager.Root());
+    return 0;
+}
+
+void ConfigManager::RegisterFeatherAPI() {
+    lua_newtable(m_State);
+
+    lua_pushcfunction(m_State, Config);
+    lua_setfield(m_State, -2, "config");
+
+    lua_setglobal(m_State, "feather");
 }
