@@ -39,7 +39,6 @@ public:
 
     wlr_scene* m_Scene;
     wlr_scene_output_layout* m_SceneLayout;
-    wlr_seat* m_Seat;
 
     wlr_xdg_shell* m_XDGShell;
 
