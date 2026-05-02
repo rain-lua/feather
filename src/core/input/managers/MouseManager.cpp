@@ -1,6 +1,6 @@
 #include "MouseManager.hpp"
 #include "../../compositor/Compositor.hpp"
-#include "../../../debug/Debug.hpp"
+#include "../../../debug/Logger.hpp"
 #include "../../util/Util.hpp"
 
 MouseManager::MouseManager() {
@@ -90,7 +90,7 @@ void MouseManager::HandleNewPointer(wlr_input_device* device) {
 }
 
 void MouseManager::HandlePointerDestroy(wl_listener* listener, void* data) {
-    log_info("--- Pointer Disconnected ---");
+    Logger::Log(LogLevel::INFO, "--- Pointer Disconnected ---");
 
     Pointer* pointer = wl_container_of(listener, pointer, m_Destroy);
 

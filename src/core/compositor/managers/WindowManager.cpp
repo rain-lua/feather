@@ -1,6 +1,6 @@
 #include "WindowManager.hpp"
 #include "../../compositor/Compositor.hpp"
-#include "../../../debug/Debug.hpp"
+#include "../../../debug/Logger.hpp"
 #include "../../util/Util.hpp"
 
 WindowManager::WindowManager() {
@@ -87,7 +87,7 @@ Window* WindowManager::FindWindowAt(double lx, double ly, wlr_surface** surface,
 }
 
 void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
-	log_debug("New window!");
+	Logger::Log(LogLevel::DEBUG, "New window!");
 
 	wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel*>(data);
 
@@ -119,7 +119,7 @@ void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
 }
 
 void WindowManager::HandleWindowMap(wl_listener* listener, void* data) {
-	log_debug("Window map");
+	Logger::Log(LogLevel::DEBUG, "Window map");
 
     Window* window = wl_container_of(listener, window, m_Map);
 	wl_list_insert(&g_pCompositor->m_WindowManager.m_Windows, &window->m_Link);
@@ -169,7 +169,7 @@ void WindowManager::HandleWindowRequestFullscreen(wl_listener* listener, void* d
 }
 
 void WindowManager::HandleWindowDestroy(wl_listener* listener, void* data) {
-	log_debug("Window destroyed");
+	Logger::Log(LogLevel::DEBUG, "Window destroyed");
 
     Window* window = wl_container_of(listener, window, m_Destroy);
 

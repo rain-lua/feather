@@ -1,7 +1,7 @@
 #include "ConfigManager.hpp"
 #include "../core/compositor/Compositor.hpp"
 #include "../core/util/Util.hpp"
-#include "../debug/Debug.hpp"
+#include "../debug/Logger.hpp"
 #include <fstream>
 #include <cstdlib>
 #include <filesystem>
@@ -87,7 +87,7 @@ void ConfigManager::Initialize() {
     const char* home = std::getenv("HOME");
 
     if (!home) {
-        log_error("HOME not found");
+        Logger::Log(LogLevel::ERROR, "HOME not found");
         return;
     }
 
@@ -119,23 +119,23 @@ void ConfigManager::Cleanup() {
 }
 
 bool ConfigManager::Load(const std::string& path) {
-    log_info("Loading config: %s", path.c_str());
+    Logger::Log(LogLevel::INFO, "Loading config: %s", path.c_str());
 
     if (luaL_loadfile(m_State, path.c_str()) != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
-        log_error("Loadfile failed: %s", err ? err : "unknown");
+        Logger::Log(LogLevel::ERROR, "Loadfile failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
         return false;
     }
 
     if (lua_pcall(m_State, 0, 0, 0) != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
-        log_error("Runtime failed: %s", err ? err : "unknown");
+        Logger::Log(LogLevel::ERROR, "Runtime failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
         return false;
     }
 
-    log_info("Config loaded successfully");
+    Logger::Log(LogLevel::INFO, "Config loaded successfully");
     return true;
 }
 
@@ -151,7 +151,7 @@ Leaf* ConfigManager::GetLeafFromPath(const std::string& path) {
         node = node->GetTree(key);
 
         if (!node) {
-            log_error("Invalid config path: %s", path.c_str());
+            Logger::Log(LogLevel::ERROR, "Invalid config path: %s", path.c_str());
             return nullptr;
         }
 
@@ -233,7 +233,7 @@ void ConfigManager::ParseTable(int index, Tree* node) {
             continue;
         }
 
-        log_debug("Unknown config key ignored: %s", key.c_str());
+        Logger::Log(LogLevel::DEBUG, "Unknown config key ignored: %s", key.c_str());
         lua_pop(m_State, 1);
     }
 }
@@ -252,7 +252,7 @@ void ConfigManager::EnsureUserConfigExists() {
     fs::create_directories(dir, ec);
 
     if (ec) {
-        log_error("Failed creating config dir");
+        Logger::Log(LogLevel::ERROR, "Failed creating config dir");
         return;
     }
 
@@ -260,12 +260,12 @@ void ConfigManager::EnsureUserConfigExists() {
         return;
     }
 
-    log_info("Creating feather config file");
+    Logger::Log(LogLevel::INFO, "Creating feather config file");
 
     std::ofstream ofs(file, std::ios::binary);
 
     if (!ofs.is_open()) {
-        log_error("Failed opening config file");
+        Logger::Log(LogLevel::ERROR, "Failed opening config file");
         return;
     }
 

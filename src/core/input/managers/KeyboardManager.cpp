@@ -1,6 +1,6 @@
 #include "KeyboardManager.hpp"
 #include "../../compositor/Compositor.hpp"
-#include "../../../debug/Debug.hpp"
+#include "../../../debug/Logger.hpp"
 #include "../../util/Util.hpp"
 #include <iostream>
 
@@ -51,7 +51,7 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device* device) {
 }
 
 void KeyboardManager::HandleKeyboardDestroy(wl_listener* listener, void* data) {
-    log_info("--- Keyboard Disconnected ---");
+    Logger::Log(LogLevel::INFO, "--- Keyboard Disconnected ---");
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Destroy);
 
     wl_list_remove(&keyboard->m_Modifiers.link);

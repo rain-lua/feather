@@ -1,14 +1,14 @@
 #include "Compositor.hpp"
 #include "./managers/WindowManager.hpp"
 #include "../../include/Defines.hpp"
-#include "../../debug/Debug.hpp"
+#include "../../debug/Logger.hpp"
 #include "../output/MonitorManager.hpp"
 #include "../input/InputManager.hpp"
 
 #include <signal.h>
 
 static int HandleSignal(int sig, void* data) {
-    log_info("Received signal %d (%s)", sig, strsignal(sig));
+    Logger::Log(LogLevel::INFO, "Received signal %d (%s)", sig, strsignal(sig));
 
     if (sig == SIGINT || sig == SIGTERM) {
         g_pCompositor->Stop();
@@ -35,7 +35,7 @@ Compositor::Compositor() {
     m_XWayland = wlr_xwayland_create(m_Display, m_Compositor, true);
 
     if (!m_XWayland) {
-        log_warn("XWayland initialization failed.");
+        Logger::Log(LogLevel::WARN, "XWayland initialization failed.");
     }
 
     m_Scene = wlr_scene_create();
@@ -78,28 +78,28 @@ bool Compositor::Initialize() {
 
     setenv("WAYLAND_DISPLAY", socket, 1);
 
-    log_info("========================================");
-    log_info(" Feather initialized!");
-    log_info(" socket: %s", socket);
-    log_info("========================================");
+    Logger::Log(LogLevel::INFO, "========================================");
+    Logger::Log(LogLevel::INFO, " Feather initialized!");
+    Logger::Log(LogLevel::INFO, " socket: %s", socket);
+    Logger::Log(LogLevel::INFO, "========================================");
 
     return true;
 }
 
 void Compositor::Run() {
-    log_info("Running Feather...");
+    Logger::Log(LogLevel::INFO, "Running Feather...");
 
     wl_display_run(m_Display);
 }
 
 void Compositor::Stop() {
-    log_info("Stopping Feather...");
+    Logger::Log(LogLevel::INFO, "Stopping Feather...");
 
     wl_display_terminate(m_Display);
 }
 
 void Compositor::Cleanup() {
-    log_info("Exiting Feather...");
+    Logger::Log(LogLevel::INFO, "Exiting Feather...");
 
     if (!m_Display) {
         return;

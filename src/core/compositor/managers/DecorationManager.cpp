@@ -1,6 +1,6 @@
 #include "DecorationManager.hpp"
 #include "../Compositor.hpp"
-#include "../../../debug/Debug.hpp"
+#include "../../../debug/Logger.hpp"
 #include <cstdlib>
 
 DecorationManager::DecorationManager() {
@@ -20,7 +20,7 @@ void DecorationManager::Cleanup() {
 
 void DecorationManager::HandleNewDecoration(wl_listener* listener, void* data) {
     wlr_xdg_toplevel_decoration_v1* wlr_decoration = static_cast<wlr_xdg_toplevel_decoration_v1*>(data);
-    log_debug("New decoration request %p", wlr_decoration);
+    Logger::Log(LogLevel::DEBUG, "New decoration request %p", wlr_decoration);
 
     if (!wlr_decoration) { 
         return;
@@ -45,17 +45,17 @@ void DecorationManager::HandleRequestMode(wl_listener* listener, void* data) {
     Decoration* deco = wl_container_of(listener, deco, m_RequestMode);
     if (!deco || !deco->m_Decoration) return;
     
-    log_debug("Client requested mode: %d", deco->m_Decoration->requested_mode);
+    Logger::Log(LogLevel::DEBUG, "Client requested mode: %d", deco->m_Decoration->requested_mode);
     
     if (deco->m_Decoration->requested_mode != WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE) {
-        log_debug("Forcing SSD");
+        Logger::Log(LogLevel::DEBUG, "Forcing SSD");
         wlr_xdg_toplevel_decoration_v1_set_mode(deco->m_Decoration, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
     }
 }
 
 void DecorationManager::HandleDecorationDestroy(wl_listener* listener, void* data) {
     Decoration* deco = wl_container_of(listener, deco, m_Destroy);
-    log_debug("Decoration destroyed");
+    Logger::Log(LogLevel::DEBUG, "Decoration destroyed");
 
     wl_list_remove(&deco->m_RequestMode.link);
     wl_list_remove(&deco->m_Destroy.link);

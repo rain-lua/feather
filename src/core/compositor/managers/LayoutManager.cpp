@@ -1,6 +1,6 @@
 #include "LayoutManager.hpp"
 #include "../../compositor/Compositor.hpp"
-#include "../../../debug/Debug.hpp"
+#include "../../../debug/Logger.hpp"
 #include "../../util/Util.hpp"
 
 LayoutManager::LayoutManager() {

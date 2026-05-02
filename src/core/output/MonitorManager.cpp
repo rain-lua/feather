@@ -1,6 +1,6 @@
 #include "MonitorManager.hpp"
 #include "../compositor/Compositor.hpp"
-#include "../../debug/Debug.hpp"
+#include "../../debug/Logger.hpp"
 
 MonitorManager::MonitorManager() {
     wl_list_init(&m_Outputs);
@@ -17,7 +17,7 @@ void MonitorManager::Cleanup() {
 
 void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
     wlr_output* output = static_cast<wlr_output*>(data);
-    log_info("--- New Monitor Connected: %s ---", output->name);
+    Logger::Log(LogLevel::INFO, "--- New Monitor Connected: %s ---", output->name);
 
     wlr_output_init_render(output, g_pCompositor->m_Allocator, g_pCompositor->m_Renderer);
 
@@ -56,7 +56,7 @@ void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
 
 void MonitorManager::HandleOutputDestroy(wl_listener* listener, void* data) {
     Monitor* monitor = wl_container_of(listener, monitor, m_Destroy);
-    log_info("--- Monitor Disconnected ---");
+    Logger::Log(LogLevel::INFO, "--- Monitor Disconnected ---");
 
     wl_list_remove(&monitor->m_Frame.link);
     wl_list_remove(&monitor->m_RequestState.link);
