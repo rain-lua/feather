@@ -24,6 +24,19 @@ Compositor::Compositor() {
     m_Backend = wlr_backend_autocreate(m_EventLoop, nullptr);
     m_Renderer = wlr_renderer_autocreate(m_Backend);
 
+    if (!m_Backend) {
+        Logger::Log(LogLevel::CRITICAL, "Failed to create backend!");
+        return;
+    }
+
+    if (!m_Renderer) {
+        Logger::Log(LogLevel::CRITICAL, "Failed to create renderer!");
+        return;
+    }
+
+    wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
+    wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
+
     wlr_renderer_init_wl_display(m_Renderer, m_Display);
 
     m_Allocator = wlr_allocator_autocreate(m_Backend, m_Renderer);
@@ -33,6 +46,11 @@ Compositor::Compositor() {
     m_OutputLayout = wlr_output_layout_create(m_Display);
 
     m_XWayland = wlr_xwayland_create(m_Display, m_Compositor, true);
+
+    if (!m_Allocator) {
+        Logger::Log(LogLevel::CRITICAL, "Failed to create allocator!");
+        return;
+    }
 
     if (!m_XWayland) {
         Logger::Log(LogLevel::WARN, "XWayland initialization failed.");
@@ -51,10 +69,6 @@ Compositor::~Compositor() {
 }
 
 bool Compositor::Initialize() {
-    if (!m_Backend || !m_Renderer || !m_Allocator) {   
-        return false;
-    }
-
     m_ConfigManager.Initialize();
     m_MonitorManager.Initialize();
 
@@ -66,17 +80,20 @@ bool Compositor::Initialize() {
     m_SeatManager.Initialize();
     m_KeyboardManager.Initialize();
     m_MouseManager.Initialize();
-    
-    wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
-    wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
 
     const char* socket = wl_display_add_socket_auto(m_Display);
 
-    if (!socket || !wlr_backend_start(m_Backend)) {
+    if (!socket) {
+        Logger::Log(LogLevel::CRITICAL, "Failed to ensure wayland display socket!");
         return false;
     }
 
     setenv("WAYLAND_DISPLAY", socket, 1);
+
+    if (!wlr_backend_start(m_Backend)) {
+        Logger::Log(LogLevel::CRITICAL, "Failed to start backend!");
+        return false;
+    }
 
     Logger::Log(LogLevel::INFO, "========================================");
     Logger::Log(LogLevel::INFO, " Feather initialized!");
