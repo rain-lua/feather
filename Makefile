@@ -44,7 +44,7 @@ PROTO_FILES := $(XDG_HEADER) $(XDG_CODE)
 $(PROTO_FILES): $(XDG_XML)
 	$(call msg_color,32,Generating xdg-shell...)
 	@mkdir -p $(BUILD_PROTO_DIR)
-	$(WAYLAND_SCANNER) client-header $< $(XDG_HEADER)
+	$(WAYLAND_SCANNER) server-header $< $(XDG_HEADER)
 	$(WAYLAND_SCANNER) private-code $< $(XDG_CODE)
 
 CXXFLAGS := -g -Werror -DWLR_USE_UNSTABLE \
