@@ -53,7 +53,7 @@ Compositor::Compositor() {
     }
 
     if (!m_XWayland) {
-        Logger::Log(LogLevel::WARN, "XWayland initialization failed.");
+        Logger::Log(LogLevel::WARN, "Failed to create XWayland server!");
     }
 
     m_Scene = wlr_scene_create();
@@ -88,7 +88,12 @@ bool Compositor::Initialize() {
         return false;
     }
 
+    setenv("XDG_CURRENT_DESKTOP", "feather", 1);
     setenv("WAYLAND_DISPLAY", socket, 1);
+
+    if (m_XWayland) {
+        setenv("DISPLAY", m_XWayland->display_name, 1);
+    }
 
     if (!wlr_backend_start(m_Backend)) {
         Logger::Log(LogLevel::CRITICAL, "Failed to start backend!");
