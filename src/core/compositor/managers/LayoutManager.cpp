@@ -49,7 +49,7 @@ void LayoutManager::Tile() {
                     wlr_scene_node_set_position(&w->m_SceneTree->node, box.x, box.y);
                     wlr_xdg_toplevel_set_size(w->m_XDGToplevel, master_width, height);
                 } else {
-                    wlr_scene_node_set_position(&w->m_SceneTree->node,box.x + master_width, box.y + (i - 1) * stack_height);
+                    wlr_scene_node_set_position(&w->m_SceneTree->node, box.x + master_width, box.y + (i - 1) * stack_height);
                     wlr_xdg_toplevel_set_size(w->m_XDGToplevel, stack_width, stack_height);
                 }
                 i++;
