@@ -72,14 +72,14 @@ bool Compositor::Initialize() {
     m_ConfigManager.Initialize();
     m_MonitorManager.Initialize();
 
-    m_WindowManager.Initialize();
-    m_LayoutManager.Initialize();
-    m_DecorationManager.Initialize();
-
     m_InputManager.Initialize();
     m_SeatManager.Initialize();
     m_KeyboardManager.Initialize();
     m_MouseManager.Initialize();
+
+    m_WindowManager.Initialize();
+    m_LayoutManager.Initialize();
+    m_DecorationManager.Initialize();
 
     const char* socket = wl_display_add_socket_auto(m_Display);
 
@@ -131,14 +131,14 @@ void Compositor::Cleanup() {
 
     wl_display_destroy_clients(m_Display);
 
+    m_DecorationManager.Cleanup();
+    m_LayoutManager.Cleanup();
+    m_WindowManager.Cleanup();
+
     m_MouseManager.Cleanup();
     m_KeyboardManager.Cleanup();
     m_SeatManager.Cleanup();
     m_InputManager.Cleanup();
-
-    m_DecorationManager.Cleanup();
-    m_LayoutManager.Cleanup();
-    m_WindowManager.Cleanup();
 
     m_MonitorManager.Cleanup();
     m_ConfigManager.Cleanup();
