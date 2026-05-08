@@ -46,14 +46,14 @@ void MouseManager::Cleanup() {
 }
 
 void MouseManager::ResetCursorMode() {
-    g_pCompositor->m_MouseManager.m_CursorMode = CURSOR_PASSTHROUGH;
+    m_CursorMode = CURSOR_PASSTHROUGH;
 }
 
 void MouseManager::ProcessCursorMotion(uint32_t time) {
-    if (g_pCompositor->m_MouseManager.m_CursorMode == CURSOR_MOVE) {
+    if (m_CursorMode == CURSOR_MOVE) {
 		//stuff
         return;
-    } else if (g_pCompositor->m_MouseManager.m_CursorMode == CURSOR_RESIZE) {
+    } else if (m_CursorMode == CURSOR_RESIZE) {
 		//stuff
         return;
     }
@@ -65,7 +65,7 @@ void MouseManager::ProcessCursorMotion(uint32_t time) {
     wlr_scene_node* node = wlr_scene_node_at(&g_pCompositor->m_Scene->tree.node, g_pCompositor->m_MouseManager.m_Cursor->x, g_pCompositor->m_MouseManager.m_Cursor->y, &sx, &sy);
 
     if (!node) {
-        wlr_cursor_set_xcursor(g_pCompositor->m_MouseManager.m_Cursor, g_pCompositor->m_MouseManager.m_XCursorManager, "default");
+        wlr_cursor_set_xcursor(m_Cursor, m_XCursorManager, "default");
     }
 
     if (node && node->type == WLR_SCENE_NODE_BUFFER) {
@@ -86,6 +86,14 @@ void MouseManager::ProcessCursorMotion(uint32_t time) {
 }
 
 void MouseManager::HandleNewPointer(wlr_input_device* device) {
+    Pointer* pointer = new Pointer;
+
+    pointer->m_Device = device;
+    pointer->m_Destroy.notify = MouseManager::HandlePointerDestroy;
+
+    wl_signal_add(&device->events.destroy, &pointer->m_Destroy);
+
+    wl_list_insert(&g_pCompositor->m_MouseManager.m_Pointers, &pointer->m_Link);
     wlr_cursor_attach_input_device(g_pCompositor->m_MouseManager.m_Cursor, device);
 }
 

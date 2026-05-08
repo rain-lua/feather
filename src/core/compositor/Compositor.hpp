@@ -45,14 +45,14 @@ public:
     ConfigManager m_ConfigManager;
     MonitorManager m_MonitorManager;
 
-    WindowManager m_WindowManager;
-    LayoutManager m_LayoutManager;
-    DecorationManager m_DecorationManager;
-
     InputManager m_InputManager;
     SeatManager m_SeatManager;
     KeyboardManager m_KeyboardManager;
     MouseManager m_MouseManager;
+
+    WindowManager m_WindowManager;
+    LayoutManager m_LayoutManager;
+    DecorationManager m_DecorationManager;
 };
 
 inline std::unique_ptr<Compositor> g_pCompositor;
