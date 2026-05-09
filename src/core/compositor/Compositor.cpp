@@ -34,8 +34,8 @@ Compositor::Compositor() {
         return;
     }
 
-    wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
-    wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
+    m_SigIntSource = wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
+    m_SigTermSource = wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
 
     wlr_renderer_init_wl_display(m_Renderer, m_Display);
 
@@ -129,6 +129,11 @@ void Compositor::Cleanup() {
 
     m_CleaningUp = true;
 
+    if (m_SigIntSource && m_SigTermSource) {
+        wl_event_source_remove(m_SigIntSource);
+        wl_event_source_remove(m_SigTermSource);
+    }
+
     wl_display_destroy_clients(m_Display);
 
     m_DecorationManager.Cleanup();
@@ -142,6 +147,11 @@ void Compositor::Cleanup() {
 
     m_MonitorManager.Cleanup();
     m_ConfigManager.Cleanup();
+
+    if (m_XWayland) {
+        wlr_xwayland_destroy(m_XWayland);
+        m_XWayland = nullptr;
+    }
 
     wlr_scene_node_destroy(&m_Scene->tree.node);
     wlr_allocator_destroy(m_Allocator);
