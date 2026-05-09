@@ -19,15 +19,22 @@ static int HandleSignal(int sig, void* data) {
 
 Compositor::Compositor() {
     m_Display = wl_display_create();
+
+    if (!m_Display) {
+        Logger::Log(LogLevel::CRITICAL, "Failed to create display!");
+        return;
+    }
+
     m_EventLoop = wl_display_get_event_loop(m_Display);
-    
+
     m_Backend = wlr_backend_autocreate(m_EventLoop, nullptr);
-    m_Renderer = wlr_renderer_autocreate(m_Backend);
 
     if (!m_Backend) {
         Logger::Log(LogLevel::CRITICAL, "Failed to create backend!");
         return;
     }
+
+    m_Renderer = wlr_renderer_autocreate(m_Backend);
 
     if (!m_Renderer) {
         Logger::Log(LogLevel::CRITICAL, "Failed to create renderer!");
@@ -85,6 +92,9 @@ bool Compositor::Initialize() {
 
     if (!socket) {
         Logger::Log(LogLevel::CRITICAL, "Failed to ensure wayland display socket!");
+
+        wlr_backend_destroy(m_Backend);
+
         return false;
     }
 
@@ -97,6 +107,10 @@ bool Compositor::Initialize() {
 
     if (!wlr_backend_start(m_Backend)) {
         Logger::Log(LogLevel::CRITICAL, "Failed to start backend!");
+
+        wlr_backend_destroy(m_Backend);
+		wl_display_destroy(m_Display);
+
         return false;
     }
 
