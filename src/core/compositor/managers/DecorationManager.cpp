@@ -4,33 +4,46 @@
 #include <cstdlib>
 
 DecorationManager::DecorationManager() {
-    // we don't have to do anything here yet
-}
+    Logger::Log(LogLevel::INFO, "[OK] DecorationManager");
 
-void DecorationManager::Initialize() {
+    wl_list_init(&m_Decorations);
+
     m_XDGDecorationManager = wlr_xdg_decoration_manager_v1_create(g_pCompositor->m_Display);
     
     m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
     wl_signal_add(&m_XDGDecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
 }
 
-void DecorationManager::Cleanup() {
+DecorationManager::~DecorationManager() {
     wl_list_remove(&m_NewDecoration.link);
+
+    while (!wl_list_empty(&m_Decorations)) {
+        Decoration* deco = wl_container_of(m_Decorations.next, deco, m_Link);
+        DestroyDecoration(deco);
+    }
+}
+
+void DecorationManager::DestroyDecoration(Decoration* deco) {
+    if (!deco) {
+        return;
+    }
+
+    wl_list_remove(&deco->m_RequestMode.link);
+    wl_list_remove(&deco->m_Destroy.link);
+    wl_list_remove(&deco->m_Link);
+
+    delete deco;
 }
 
 void DecorationManager::HandleNewDecoration(wl_listener* listener, void* data) {
     wlr_xdg_toplevel_decoration_v1* wlr_decoration = static_cast<wlr_xdg_toplevel_decoration_v1*>(data);
-    Logger::Log(LogLevel::DEBUG, "New decoration request %p", wlr_decoration);
+    Logger::Log(LogLevel::DEBUG, "New decoration request");
 
     if (!wlr_decoration) { 
         return;
     }
 
     Decoration* deco = new Decoration;
-
-    if (!deco) { 
-        return;
-    }
 
     deco->m_Decoration = wlr_decoration;
 
@@ -39,11 +52,16 @@ void DecorationManager::HandleNewDecoration(wl_listener* listener, void* data) {
     
     wl_signal_add(&wlr_decoration->events.request_mode, &deco->m_RequestMode);
     wl_signal_add(&wlr_decoration->events.destroy, &deco->m_Destroy);
+
+    wl_list_insert(&g_pCompositor->m_DecorationManager->m_Decorations, &deco->m_Link);
 }
 
 void DecorationManager::HandleRequestMode(wl_listener* listener, void* data) {
     Decoration* deco = wl_container_of(listener, deco, m_RequestMode);
-    if (!deco || !deco->m_Decoration) return;
+
+    if (!deco || !deco->m_Decoration) {
+        return;
+    }
     
     Logger::Log(LogLevel::DEBUG, "Client requested mode: %d", deco->m_Decoration->requested_mode);
     
@@ -55,10 +73,6 @@ void DecorationManager::HandleRequestMode(wl_listener* listener, void* data) {
 
 void DecorationManager::HandleDecorationDestroy(wl_listener* listener, void* data) {
     Decoration* deco = wl_container_of(listener, deco, m_Destroy);
-    Logger::Log(LogLevel::DEBUG, "Decoration destroyed");
 
-    wl_list_remove(&deco->m_RequestMode.link);
-    wl_list_remove(&deco->m_Destroy.link);
-
-    delete deco;
+    g_pCompositor->m_DecorationManager->DestroyDecoration(deco);
 }

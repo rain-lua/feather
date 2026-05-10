@@ -5,9 +5,7 @@
 class SeatManager {
 public:
     SeatManager();
-
-    void Initialize();
-    void Cleanup();
+    ~SeatManager();
 
     wlr_seat* m_Seat;
 

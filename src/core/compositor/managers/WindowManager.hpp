@@ -21,14 +21,14 @@ struct Window {
 class WindowManager {
 public:
     WindowManager();
-
-	void Initialize();
-	void Cleanup();
+	~WindowManager();
 
 	wl_list m_Windows;
 	wl_listener m_NewWindow;
 
 	Window* m_FocusedWindow;
+
+	void DestroyWindow(Window* window);
 
 	void FocusWindow(Window* window);
 	void CloseWindow(Window* window);

@@ -5,15 +5,13 @@
 #include "../../debug/Logger.hpp"
 
 InputManager::InputManager() {
-    // todo: add stuff here
-}
+    Logger::Log(LogLevel::INFO, "[OK] InputManager");
 
-void InputManager::Initialize() {
     m_NewInput.notify = InputManager::HandleNewInput;
     wl_signal_add(&g_pCompositor->m_Backend->events.new_input, &m_NewInput);
 }
 
-void InputManager::Cleanup() {
+InputManager::~InputManager() {
     wl_list_remove(&m_NewInput.link);
 }
 
@@ -36,9 +34,9 @@ void InputManager::HandleNewInput(wl_listener* listener, void* data) {
 
     uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
     
-    if (!wl_list_empty(&g_pCompositor->m_KeyboardManager.m_Keyboards)) {
+    if (!wl_list_empty(&g_pCompositor->m_KeyboardManager->m_Keyboards)) {
         caps |= WL_SEAT_CAPABILITY_KEYBOARD;
     }
     
-    wlr_seat_set_capabilities(g_pCompositor->m_SeatManager.m_Seat, caps);
+    wlr_seat_set_capabilities(g_pCompositor->m_SeatManager->m_Seat, caps);
 }

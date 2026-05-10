@@ -46,17 +46,15 @@ public:
 
     wlr_xdg_shell* m_XDGShell;
 
-    ConfigManager m_ConfigManager;
-    MonitorManager m_MonitorManager;
-
-    InputManager m_InputManager;
-    SeatManager m_SeatManager;
-    KeyboardManager m_KeyboardManager;
-    MouseManager m_MouseManager;
-
-    WindowManager m_WindowManager;
-    LayoutManager m_LayoutManager;
-    DecorationManager m_DecorationManager;
+    std::unique_ptr<ConfigManager>     m_ConfigManager;
+    std::unique_ptr<MonitorManager>    m_MonitorManager;
+    std::unique_ptr<InputManager>      m_InputManager;
+    std::unique_ptr<SeatManager>       m_SeatManager;
+    std::unique_ptr<KeyboardManager>   m_KeyboardManager;
+    std::unique_ptr<MouseManager>      m_MouseManager;
+    std::unique_ptr<WindowManager>     m_WindowManager;
+    std::unique_ptr<LayoutManager>     m_LayoutManager;
+    std::unique_ptr<DecorationManager> m_DecorationManager;
 };
 
 inline std::unique_ptr<Compositor> g_pCompositor;

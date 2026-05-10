@@ -71,19 +71,15 @@ Leaf* Tree::AddLeaf(const std::string& key, Leaf leaf) {
 }
 
 ConfigManager::ConfigManager() {
+    Logger::Log(LogLevel::INFO, "[OK] ConfigManager");
+
     m_RootTree = std::make_unique<Tree>();
 
     m_State = luaL_newstate();
     luaL_openlibs(m_State);
 
     RegisterFeatherAPI();
-}
 
-Tree* ConfigManager::Root() {
-    return m_RootTree.get();
-}
-
-void ConfigManager::Initialize() {
     const char* home = std::getenv("HOME");
 
     if (!home) {
@@ -111,7 +107,11 @@ void ConfigManager::Initialize() {
     Load(m_ConfigPath);
 }
 
-void ConfigManager::Cleanup() {
+Tree* ConfigManager::Root() {
+    return m_RootTree.get();
+}
+
+ConfigManager::~ConfigManager() {
     if (m_State) {
         lua_close(m_State);
         m_State = nullptr;
@@ -123,14 +123,14 @@ bool ConfigManager::Load(const std::string& path) {
 
     if (luaL_loadfile(m_State, path.c_str()) != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
-        Logger::Log(LogLevel::ERROR, "Loadfile failed: %s", err ? err : "unknown");
+        Logger::Log(LogLevel::ERROR, "[LUA] Loadfile failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
         return false;
     }
 
     if (lua_pcall(m_State, 0, 0, 0) != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
-        Logger::Log(LogLevel::ERROR, "Runtime failed: %s", err ? err : "unknown");
+        Logger::Log(LogLevel::ERROR, "[LUA] Runtime failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
         return false;
     }
@@ -277,14 +277,23 @@ int ConfigManager::Config(lua_State* L) {
         return luaL_error(L, "feather.config expects a table");
     }
 
-    g_pCompositor->m_ConfigManager.ParseTable(lua_absindex(L, 1), g_pCompositor->m_ConfigManager.Root());
+    ConfigManager* self = static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+    if (!self) {
+        return luaL_error(L, "ConfigManager missing!");
+    }
+
+    self->ParseTable(lua_absindex(L, 1), self->Root());
+
     return 0;
 }
 
 void ConfigManager::RegisterFeatherAPI() {
     lua_newtable(m_State);
 
-    lua_pushcfunction(m_State, Config);
+    lua_pushlightuserdata(m_State, this);
+    lua_pushcclosure(m_State, Config, 1);
+
     lua_setfield(m_State, -2, "config");
 
     lua_setglobal(m_State, "feather");

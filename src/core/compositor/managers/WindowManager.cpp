@@ -4,18 +4,40 @@
 #include "../../util/Util.hpp"
 
 WindowManager::WindowManager() {
+	Logger::Log(LogLevel::INFO, "[OK] WindowManager");
+
 	wl_list_init(&m_Windows);
 
 	m_FocusedWindow = nullptr;
-}
 
-void WindowManager::Initialize() {
 	m_NewWindow.notify = WindowManager::HandleNewWindow;
 	wl_signal_add(&g_pCompositor->m_XDGShell->events.new_toplevel, &m_NewWindow);
 }
 
-void WindowManager::Cleanup() {
+WindowManager::~WindowManager() {
 	wl_list_remove(&m_NewWindow.link);
+
+	while (!wl_list_empty(&m_Windows)) {
+		Window* window = wl_container_of(m_Windows.next, window, m_Link);
+		DestroyWindow(window);
+	}
+}
+
+void WindowManager::DestroyWindow(Window* window) {
+	if (!window) {
+		return;
+	}
+
+	wl_list_remove(&window->m_Map.link);
+	wl_list_remove(&window->m_Unmap.link);
+	wl_list_remove(&window->m_Commit.link);
+	wl_list_remove(&window->m_Destroy.link);
+	wl_list_remove(&window->m_RequestMove.link);
+	wl_list_remove(&window->m_RequestResize.link);
+	wl_list_remove(&window->m_RequestMaximize.link);
+	wl_list_remove(&window->m_RequestFullscreen.link);
+
+	delete window;
 }
 
 void WindowManager::FocusWindow(Window* window) {
@@ -23,7 +45,7 @@ void WindowManager::FocusWindow(Window* window) {
 		return;
 	}
 	
-	wlr_seat* seat = g_pCompositor->m_SeatManager.m_Seat;
+	wlr_seat* seat = g_pCompositor->m_SeatManager->m_Seat;
 	wlr_surface* prev_surface = seat->keyboard_state.focused_surface;
 	wlr_surface* surface = window->m_XDGToplevel->base->surface;
 
@@ -42,10 +64,11 @@ void WindowManager::FocusWindow(Window* window) {
 	wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
 
 	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
+
 	wl_list_remove(&window->m_Link);
-	wl_list_insert(&g_pCompositor->m_WindowManager.m_Windows, &window->m_Link);
+	wl_list_insert(&g_pCompositor->m_WindowManager->m_Windows, &window->m_Link);
 	
-	g_pCompositor->m_WindowManager.m_FocusedWindow = window;
+	g_pCompositor->m_WindowManager->m_FocusedWindow = window;
 	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
 
 	if (keyboard != nullptr) {
@@ -92,6 +115,7 @@ void WindowManager::HandleNewWindow(wl_listener* listener, void* data) {
 	wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel*>(data);
 
 	Window* window = new Window;
+
 	window->m_XDGToplevel = XDG_Toplevel;
 	window->m_SceneTree = wlr_scene_xdg_surface_create(&g_pCompositor->m_Scene->tree, XDG_Toplevel->base);
 	window->m_SceneTree->node.data = window;
@@ -122,17 +146,17 @@ void WindowManager::HandleWindowMap(wl_listener* listener, void* data) {
 	Logger::Log(LogLevel::DEBUG, "Window map");
 
     Window* window = wl_container_of(listener, window, m_Map);
-	wl_list_insert(&g_pCompositor->m_WindowManager.m_Windows, &window->m_Link);
+	wl_list_insert(&g_pCompositor->m_WindowManager->m_Windows, &window->m_Link);
 
-    g_pCompositor->m_LayoutManager.Tile();
-	g_pCompositor->m_WindowManager.FocusWindow(window);
+    g_pCompositor->m_LayoutManager->Tile();
+	g_pCompositor->m_WindowManager->FocusWindow(window);
 }
 
 void WindowManager::HandleWindowUnmap(wl_listener* listener, void* data) {
     Window* window = wl_container_of(listener, window, m_Unmap);
 
 	wl_list_remove(&window->m_Link);
-	g_pCompositor->m_LayoutManager.Tile();
+	g_pCompositor->m_LayoutManager->Tile();
 }
 
 void WindowManager::HandleWindowCommit(wl_listener* listener, void* data) {
@@ -169,25 +193,13 @@ void WindowManager::HandleWindowRequestFullscreen(wl_listener* listener, void* d
 }
 
 void WindowManager::HandleWindowDestroy(wl_listener* listener, void* data) {
-	Logger::Log(LogLevel::DEBUG, "Window destroyed");
-
     Window* window = wl_container_of(listener, window, m_Destroy);
 
-	if(!wl_list_empty(&g_pCompositor->m_WindowManager.m_Windows)) {
-		g_pCompositor->m_WindowManager.FocusWindow(wl_container_of(g_pCompositor->m_WindowManager.m_Windows.prev, g_pCompositor->m_WindowManager.m_FocusedWindow, m_Link));
+	if(!wl_list_empty(&g_pCompositor->m_WindowManager->m_Windows)) {
+		g_pCompositor->m_WindowManager->FocusWindow(wl_container_of(g_pCompositor->m_WindowManager->m_Windows.prev, g_pCompositor->m_WindowManager->m_FocusedWindow, m_Link));
 	} else {
-		// we will just set it to nullptr for now to prevent issues.
-		g_pCompositor->m_WindowManager.m_FocusedWindow = nullptr;
+		g_pCompositor->m_WindowManager->m_FocusedWindow = nullptr;
 	}
 
-	wl_list_remove(&window->m_Map.link);
-	wl_list_remove(&window->m_Unmap.link);
-	wl_list_remove(&window->m_Commit.link);
-	wl_list_remove(&window->m_Destroy.link);
-	wl_list_remove(&window->m_RequestMove.link);
-	wl_list_remove(&window->m_RequestResize.link);
-	wl_list_remove(&window->m_RequestMaximize.link);
-	wl_list_remove(&window->m_RequestFullscreen.link);
-
-	delete window;
+	g_pCompositor->m_WindowManager->DestroyWindow(window);
 }

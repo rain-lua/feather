@@ -5,9 +5,7 @@
 class InputManager {
 public:
     InputManager();
-
-    void Initialize();
-    void Cleanup();
+    ~InputManager();
 
     wl_listener m_NewInput;
 

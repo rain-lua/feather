@@ -14,9 +14,7 @@ struct Keyboard {
 class KeyboardManager {
 public:
     KeyboardManager();
-
-    void Initialize();
-    void Cleanup();
+    ~KeyboardManager();
 
     wl_list m_Keyboards;
 
@@ -24,6 +22,8 @@ public:
 
     int m_RepeatRate;
     int m_RepeatDelay;
+
+    void DestroyKeyboard(Keyboard* keyboard);
 
     static void HandleNewKeyboard(wlr_input_device* device);
     static void HandleKeyboardDestroy(wl_listener* listener, void* data);

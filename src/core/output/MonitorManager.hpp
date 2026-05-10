@@ -14,12 +14,12 @@ struct Monitor {
 class MonitorManager {
 public:
     MonitorManager();
-
-    void Initialize();
-    void Cleanup();
+    ~MonitorManager();
 
     wl_list m_Outputs;
     wl_listener m_NewOutput;
+
+    void DestroyMonitor(Monitor* monitor);
 
     static void HandleNewOutput(wl_listener* listener, void* data);
     static void HandleOutputDestroy(wl_listener* listener, void* data);
