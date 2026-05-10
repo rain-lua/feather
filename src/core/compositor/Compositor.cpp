@@ -41,10 +41,10 @@ Compositor::Compositor() {
         return;
     }
 
+    wlr_renderer_init_wl_display(m_Renderer, m_Display);
+
     m_SigIntSource = wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
     m_SigTermSource = wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
-
-    wlr_renderer_init_wl_display(m_Renderer, m_Display);
 
     m_Allocator = wlr_allocator_autocreate(m_Backend, m_Renderer);
     m_Compositor = wlr_compositor_create(m_Display, 5, m_Renderer);
@@ -76,17 +76,15 @@ Compositor::~Compositor() {
 }
 
 bool Compositor::Initialize() {
-    m_ConfigManager.Initialize();
-    m_MonitorManager.Initialize();
-
-    m_InputManager.Initialize();
-    m_SeatManager.Initialize();
-    m_KeyboardManager.Initialize();
-    m_MouseManager.Initialize();
-
-    m_WindowManager.Initialize();
-    m_LayoutManager.Initialize();
-    m_DecorationManager.Initialize();
+    m_ConfigManager     = std::make_unique<ConfigManager>();
+    m_MonitorManager    = std::make_unique<MonitorManager>();
+    m_InputManager      = std::make_unique<InputManager>();
+    m_SeatManager       = std::make_unique<SeatManager>();
+    m_KeyboardManager   = std::make_unique<KeyboardManager>();
+    m_MouseManager      = std::make_unique<MouseManager>();
+    m_WindowManager     = std::make_unique<WindowManager>();
+    m_LayoutManager     = std::make_unique<LayoutManager>();
+    m_DecorationManager = std::make_unique<DecorationManager>();
 
     const char* socket = wl_display_add_socket_auto(m_Display);
 
@@ -143,27 +141,26 @@ void Compositor::Cleanup() {
 
     m_CleaningUp = true;
 
+    wl_display_destroy_clients(m_Display);
+
+    m_DecorationManager = nullptr;
+    m_LayoutManager     = nullptr;
+    m_WindowManager     = nullptr;
+    m_MouseManager      = nullptr;
+    m_KeyboardManager   = nullptr;
+    m_SeatManager       = nullptr;
+    m_InputManager      = nullptr;
+    m_MonitorManager    = nullptr;
+    m_ConfigManager     = nullptr;
+
     if (m_SigIntSource && m_SigTermSource) {
         wl_event_source_remove(m_SigIntSource);
         wl_event_source_remove(m_SigTermSource);
     }
 
-    wl_display_destroy_clients(m_Display);
-
-    m_DecorationManager.Cleanup();
-    m_LayoutManager.Cleanup();
-    m_WindowManager.Cleanup();
-
-    m_MouseManager.Cleanup();
-    m_KeyboardManager.Cleanup();
-    m_SeatManager.Cleanup();
-    m_InputManager.Cleanup();
-
-    m_MonitorManager.Cleanup();
-    m_ConfigManager.Cleanup();
-
     if (m_XWayland) {
         wlr_xwayland_destroy(m_XWayland);
+
         m_XWayland = nullptr;
     }
 

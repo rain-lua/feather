@@ -39,9 +39,7 @@ public:
 class ConfigManager {
 public:
     ConfigManager();
-
-    void Initialize();
-    void Cleanup();
+    ~ConfigManager();
     
     bool Load(const std::string& path);
     void EnsureUserConfigExists();

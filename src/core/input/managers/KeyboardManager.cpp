@@ -5,29 +5,48 @@
 #include <iostream>
 
 KeyboardManager::KeyboardManager() {
+    Logger::Log(LogLevel::INFO, "[OK] KeyboardManager");
+
     wl_list_init(&m_Keyboards);
-}
 
-void KeyboardManager::Initialize() {
-    m_Layout = g_pCompositor->m_ConfigManager.GetString("input.keyboard.layout");
+    m_Layout = g_pCompositor->m_ConfigManager->GetString("input.keyboard.layout");
     
-    m_RepeatRate = g_pCompositor->m_ConfigManager.GetInt("input.keyboard.repeat_rate");
-    m_RepeatDelay = g_pCompositor->m_ConfigManager.GetInt("input.keyboard.repeat_delay");
+    m_RepeatRate = g_pCompositor->m_ConfigManager->GetInt("input.keyboard.repeat_rate");
+    m_RepeatDelay = g_pCompositor->m_ConfigManager->GetInt("input.keyboard.repeat_delay");
 }
 
-void KeyboardManager::Cleanup() {
-    // we don't have to do anything here yet
+KeyboardManager::~KeyboardManager() {
+    while (!wl_list_empty(&m_Keyboards)) {
+        Keyboard* keyboard = wl_container_of(m_Keyboards.next, keyboard, m_Link);
+        DestroyKeyboard(keyboard);
+    }
+}
+
+void KeyboardManager::DestroyKeyboard(Keyboard* keyboard) {
+    if (!keyboard) {
+        return;
+    }
+
+    Logger::Log(LogLevel::INFO, "--- Keyboard Disconnected ---");
+
+    wl_list_remove(&keyboard->m_Modifiers.link);
+    wl_list_remove(&keyboard->m_Key.link);
+    wl_list_remove(&keyboard->m_Destroy.link);
+    wl_list_remove(&keyboard->m_Link);
+
+    delete keyboard;
 }
 
 void KeyboardManager::HandleNewKeyboard(wlr_input_device* device) {
     wlr_keyboard* wlr_keyboard = wlr_keyboard_from_input_device(device);
 
     Keyboard* keyboard = new Keyboard;
+
     keyboard->m_WlrKeyboard = wlr_keyboard;
 
     xkb_rule_names names;
     memset(&names, 0, sizeof(names));
-    names.layout = g_pCompositor->m_KeyboardManager.m_Layout.c_str(); 
+    names.layout = g_pCompositor->m_KeyboardManager->m_Layout.c_str(); 
 
     xkb_context* context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     xkb_keymap* keymap = xkb_keymap_new_from_names(context, &names, XKB_KEYMAP_COMPILE_NO_FLAGS);
@@ -36,7 +55,7 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device* device) {
     xkb_keymap_unref(keymap);
     xkb_context_unref(context);
 
-    wlr_keyboard_set_repeat_info(wlr_keyboard, g_pCompositor->m_KeyboardManager.m_RepeatRate, g_pCompositor->m_KeyboardManager.m_RepeatDelay);
+    wlr_keyboard_set_repeat_info(wlr_keyboard, g_pCompositor->m_KeyboardManager->m_RepeatRate, g_pCompositor->m_KeyboardManager->m_RepeatDelay);
 
     keyboard->m_Modifiers.notify = KeyboardManager::HandleKeyboardModifiers;
     keyboard->m_Key.notify = KeyboardManager::HandleKeyboardKey;
@@ -46,20 +65,14 @@ void KeyboardManager::HandleNewKeyboard(wlr_input_device* device) {
     wl_signal_add(&wlr_keyboard->events.key, &keyboard->m_Key);
     wl_signal_add(&device->events.destroy, &keyboard->m_Destroy);
 
-    wlr_seat_set_keyboard(g_pCompositor->m_SeatManager.m_Seat, keyboard->m_WlrKeyboard);
-    wl_list_insert(&g_pCompositor->m_KeyboardManager.m_Keyboards, &keyboard->m_Link);
+    wlr_seat_set_keyboard(g_pCompositor->m_SeatManager->m_Seat, keyboard->m_WlrKeyboard);
+    wl_list_insert(&g_pCompositor->m_KeyboardManager->m_Keyboards, &keyboard->m_Link);
 }
 
 void KeyboardManager::HandleKeyboardDestroy(wl_listener* listener, void* data) {
-    Logger::Log(LogLevel::INFO, "--- Keyboard Disconnected ---");
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Destroy);
 
-    wl_list_remove(&keyboard->m_Modifiers.link);
-    wl_list_remove(&keyboard->m_Key.link);
-    wl_list_remove(&keyboard->m_Destroy.link);
-    wl_list_remove(&keyboard->m_Link);
-
-    delete keyboard;
+    g_pCompositor->m_KeyboardManager->DestroyKeyboard(keyboard);
 }
 
 static bool HandleKeybinding(xkb_keysym_t sym, uint32_t mods) {
@@ -71,7 +84,7 @@ static bool HandleKeybinding(xkb_keysym_t sym, uint32_t mods) {
                 Spawn("kitty");
                 return true;
             case XKB_KEY_c:
-                g_pCompositor->m_WindowManager.CloseWindow(g_pCompositor->m_WindowManager.m_FocusedWindow);
+                g_pCompositor->m_WindowManager->CloseWindow(g_pCompositor->m_WindowManager->m_FocusedWindow);
                 return true;
             case XKB_KEY_Escape:
                 g_pCompositor->Stop();
@@ -88,7 +101,7 @@ void KeyboardManager::HandleKeyboardKey(wl_listener* listener, void* data) {
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Key);
 
     wlr_keyboard_key_event* event = static_cast<wlr_keyboard_key_event*>(data);
-    wlr_seat* seat = g_pCompositor->m_SeatManager.m_Seat;
+    wlr_seat* seat = g_pCompositor->m_SeatManager->m_Seat;
 
     uint32_t keycode = ToXKBKeycode(event->keycode);
     const xkb_keysym_t* syms;
@@ -119,6 +132,6 @@ void KeyboardManager::HandleKeyboardKey(wl_listener* listener, void* data) {
 void KeyboardManager::HandleKeyboardModifiers(wl_listener* listener, void* data) {
     Keyboard* keyboard = wl_container_of(listener, keyboard, m_Modifiers);
 
-    wlr_seat_set_keyboard(g_pCompositor->m_SeatManager.m_Seat, keyboard->m_WlrKeyboard);
-    wlr_seat_keyboard_notify_modifiers(g_pCompositor->m_SeatManager.m_Seat, &keyboard->m_WlrKeyboard->modifiers);
+    wlr_seat_set_keyboard(g_pCompositor->m_SeatManager->m_Seat, keyboard->m_WlrKeyboard);
+    wlr_seat_keyboard_notify_modifiers(g_pCompositor->m_SeatManager->m_Seat, &keyboard->m_WlrKeyboard->modifiers);
 }

@@ -5,9 +5,7 @@
 class LayoutManager {
 public:
     LayoutManager();
-
-    void Initialize();
-    void Cleanup();
+    ~LayoutManager();
     
     std::string m_Layout;
     float m_MasterFact;

@@ -18,9 +18,7 @@ enum CursorMode {
 class MouseManager {
 public:
     MouseManager();
-
-    void Initialize();
-    void Cleanup();
+    ~MouseManager();
 
     wl_list m_Pointers;
 
@@ -34,6 +32,8 @@ public:
 	wl_listener m_CursorFrame;
 
     CursorMode m_CursorMode;
+
+    void DestroyPointer(Pointer* pointer);
 
     void ResetCursorMode();
     void ProcessCursorMotion(uint32_t time);
