@@ -28,7 +28,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    g_pCompositor = std::make_unique<Compositor>();
+    try {
+        g_pCompositor = std::make_unique<Compositor>();
+    } catch (const std::exception& e) {
+        Logger::Log(LogLevel::CRITICAL, e.what());
+        return 1;
+    }
 
     if (!g_pCompositor->Initialize()) {
         Logger::Log(LogLevel::CRITICAL, "Failed to initialize feather!");
