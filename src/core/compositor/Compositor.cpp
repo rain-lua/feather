@@ -21,8 +21,7 @@ Compositor::Compositor() {
     m_Display = wl_display_create();
 
     if (!m_Display) {
-        Logger::Log(LogLevel::CRITICAL, "Failed to create display!");
-        return;
+        throw std::runtime_error("Failed to create display!");
     }
 
     m_EventLoop = wl_display_get_event_loop(m_Display);
@@ -30,15 +29,13 @@ Compositor::Compositor() {
     m_Backend = wlr_backend_autocreate(m_EventLoop, nullptr);
 
     if (!m_Backend) {
-        Logger::Log(LogLevel::CRITICAL, "Failed to create backend!");
-        return;
+        throw std::runtime_error("Failed to create backend!");
     }
 
     m_Renderer = wlr_renderer_autocreate(m_Backend);
 
     if (!m_Renderer) {
-        Logger::Log(LogLevel::CRITICAL, "Failed to create renderer!");
-        return;
+        throw std::runtime_error("Failed to create renderer!");
     }
 
     wlr_renderer_init_wl_display(m_Renderer, m_Display);
@@ -55,8 +52,7 @@ Compositor::Compositor() {
     m_XWayland = wlr_xwayland_create(m_Display, m_Compositor, true);
 
     if (!m_Allocator) {
-        Logger::Log(LogLevel::CRITICAL, "Failed to create allocator!");
-        return;
+        throw std::runtime_error("Failed to create allocator!");
     }
 
     if (!m_XWayland) {
