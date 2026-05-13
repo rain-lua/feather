@@ -30,8 +30,8 @@ public:
     wlr_backend* m_Backend;
     wlr_renderer* m_Renderer;
 
-    wl_event_source* m_SigIntSource = nullptr;
-    wl_event_source* m_SigTermSource = nullptr;
+    wl_event_source* m_SigIntSource;
+    wl_event_source* m_SigTermSource;
 
     wlr_allocator* m_Allocator;
     wlr_compositor* m_Compositor;
