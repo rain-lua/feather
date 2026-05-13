@@ -41,9 +41,6 @@
 --
 -- ========================================================
 
--- Tip: If your editor/LSP complains about 'feather' being an undefined global, uncomment the line below.
--- ---@diagnostic disable: undefined-global
-
 feather.config({
     -- ========================================================
     -- Input configuration
