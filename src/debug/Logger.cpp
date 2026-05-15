@@ -8,6 +8,7 @@
 #include <ctime>
 
 #define CLR_RESET   "\033[0m"
+#define CLR_DIMMED  "\033[90m"
 #define CLR_CYAN    "\033[36m"
 #define CLR_GREEN   "\033[32m"
 #define CLR_YELLOW  "\033[33m"
@@ -44,10 +45,12 @@ void Logger::VLogMessage(LogLevel level, const char* fmt, va_list args) {
     char buffer[1024];
     vsnprintf(buffer, sizeof(buffer), fmt, args);
 
-    const char* color = UseColor() ? LevelToColor(level) : "";
+    const char* levelColor = UseColor() ? LevelToColor(level) : "";
     const char* reset = UseColor() ? CLR_RESET : "";
 
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
     std::time_t in_time_t = std::chrono::system_clock::to_time_t(now);
 
     std::tm tm_buf;
@@ -56,12 +59,22 @@ void Logger::VLogMessage(LogLevel level, const char* fmt, va_list args) {
     std::ostream& out = (level == LogLevel::ERROR || level == LogLevel::CRITICAL) ? std::cerr : std::cout;
 
     if (UseColor()) {
-        out << "\033[34m" << "[" << std::put_time(&tm_buf, "%H:%M:%S") << "]" << "\033[0m ";
-    } else {
-        out << "[" << std::put_time(&tm_buf, "%H:%M:%S") << "] ";
+        out << CLR_DIMMED;
     }
 
-    out << color << "[" << LevelToString(level) << "] " << buffer << reset << std::endl;
+    out << "[" << std::put_time(&tm_buf, "%H:%M:%S") << "." << std::setw(3) << std::setfill('0') << ms.count() << "] ";
+
+    if (UseColor()) {
+        out << CLR_RESET;
+    }
+
+    if (UseColor()) {
+        out << levelColor << "[" << LevelToString(level) << "]" << reset << " ";
+    } else {
+        out << "[" << LevelToString(level) << "] ";
+    }
+
+    out << buffer << std::endl;
 }
 
 void Logger::Log(LogLevel level, const char* fmt, ...) {

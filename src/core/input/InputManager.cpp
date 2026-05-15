@@ -7,7 +7,7 @@
 InputManager::InputManager() {
     Logger::Log(LogLevel::INFO, "[OK] InputManager");
 
-    m_NewInput.notify = InputManager::HandleNewInput;
+    m_NewInput.notify = HandleNewInput;
     wl_signal_add(&g_pCompositor->m_Backend->events.new_input, &m_NewInput);
 }
 

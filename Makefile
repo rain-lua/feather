@@ -57,7 +57,7 @@ OBJ := $(patsubst src/%.cpp,build/%.o,$(SRC))
 TARGET := build/feather
 
 define msg_color
-	@echo -e "\033[34m[$(shell date +'%H:%M:%S')]\033[0m \033[$(1)m$(2)\033[0m"
+	@echo -e "\033[90m[$(shell date +'%H:%M:%S.%3N')]\033[0m \033[$(1)m$(2)\033[0m"
 endef
 
 all: build $(TARGET)

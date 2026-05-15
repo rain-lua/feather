@@ -69,10 +69,8 @@ void MouseManager::ResetCursorMode() {
 
 void MouseManager::ProcessCursorMotion(uint32_t time) {
     if (m_CursorMode == CURSOR_MOVE) {
-		//stuff
         return;
     } else if (m_CursorMode == CURSOR_RESIZE) {
-		//stuff
         return;
     }
 

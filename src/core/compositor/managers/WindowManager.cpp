@@ -10,7 +10,7 @@ WindowManager::WindowManager() {
 
 	m_FocusedWindow = nullptr;
 
-	m_NewWindow.notify = WindowManager::HandleNewWindow;
+	m_NewWindow.notify = HandleNewWindow;
 	wl_signal_add(&g_pCompositor->m_XDGShell->events.new_toplevel, &m_NewWindow);
 }
 
