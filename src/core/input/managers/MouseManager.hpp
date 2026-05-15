@@ -22,9 +22,6 @@ public:
 
     wl_list m_Pointers;
 
-    wlr_xcursor_manager* m_XCursorManager;
-	wlr_cursor* m_Cursor;
-	
 	wl_listener m_CursorMotion;
 	wl_listener m_CursorMotionAbsolute;
 	wl_listener m_CursorButton;

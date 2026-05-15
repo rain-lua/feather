@@ -7,8 +7,6 @@ public:
     SeatManager();
     ~SeatManager();
 
-    wlr_seat* m_Seat;
-
     wl_listener m_RequestCursor;
 	wl_listener m_PointerFocusChange;
 	wl_listener m_RequestSetSelection;

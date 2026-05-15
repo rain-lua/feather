@@ -16,8 +16,6 @@ public:
     DecorationManager();
     ~DecorationManager();
 
-    wlr_xdg_decoration_manager_v1* m_XDGDecorationManager;
-
     wl_list m_Decorations;
     wl_listener m_NewDecoration;
 

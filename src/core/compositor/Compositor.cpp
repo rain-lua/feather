@@ -63,6 +63,16 @@ Compositor::Compositor() {
     m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
 
     m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
+
+    m_Cursor = wlr_cursor_create();
+    m_XCursorManager = wlr_xcursor_manager_create(nullptr, 24);
+
+    wlr_cursor_attach_output_layout(m_Cursor, m_OutputLayout);
+    wlr_xcursor_manager_load(m_XCursorManager, 1);
+
+	m_Seat = wlr_seat_create(m_Display, "seat0");
+
+    m_XDGDecorationManager = wlr_xdg_decoration_manager_v1_create(m_Display);
 }
 
 Compositor::~Compositor() {
@@ -159,6 +169,9 @@ void Compositor::Cleanup() {
 
         m_XWayland = nullptr;
     }
+
+    wlr_xcursor_manager_destroy(m_XCursorManager);
+    wlr_cursor_destroy(m_Cursor);
 
     wlr_scene_node_destroy(&m_Scene->tree.node);
     wlr_allocator_destroy(m_Allocator);

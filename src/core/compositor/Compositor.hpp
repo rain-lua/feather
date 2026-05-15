@@ -45,6 +45,12 @@ public:
     wlr_scene_output_layout* m_SceneLayout;
 
     wlr_xdg_shell* m_XDGShell;
+    wlr_xdg_decoration_manager_v1* m_XDGDecorationManager;
+
+    wlr_cursor* m_Cursor;
+    wlr_xcursor_manager* m_XCursorManager;
+
+    wlr_seat* m_Seat;
 
     std::unique_ptr<ConfigManager>     m_ConfigManager;
     std::unique_ptr<MonitorManager>    m_MonitorManager;
