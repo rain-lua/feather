@@ -10,7 +10,7 @@ DecorationManager::DecorationManager() {
 
     m_XDGDecorationManager = wlr_xdg_decoration_manager_v1_create(g_pCompositor->m_Display);
     
-    m_NewDecoration.notify = DecorationManager::HandleNewDecoration;
+    m_NewDecoration.notify = HandleNewDecoration;
     wl_signal_add(&m_XDGDecorationManager->events.new_toplevel_decoration, &m_NewDecoration);
 }
 
