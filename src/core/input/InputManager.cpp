@@ -38,5 +38,5 @@ void InputManager::HandleNewInput(wl_listener* listener, void* data) {
         caps |= WL_SEAT_CAPABILITY_KEYBOARD;
     }
     
-    wlr_seat_set_capabilities(g_pCompositor->m_SeatManager->m_Seat, caps);
+    wlr_seat_set_capabilities(g_pCompositor->m_Seat, caps);
 }
