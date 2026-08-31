@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "../compositor/managers/WindowManager.hpp"
 
 void Spawn(const char* name);
 

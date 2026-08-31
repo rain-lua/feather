@@ -71,8 +71,6 @@ Leaf* Tree::AddLeaf(const std::string& key, Leaf leaf) {
 }
 
 ConfigManager::ConfigManager() {
-    Logger::Log(LogLevel::INFO, "[OK] ConfigManager");
-
     m_RootTree = std::make_unique<Tree>();
 
     m_State = luaL_newstate();

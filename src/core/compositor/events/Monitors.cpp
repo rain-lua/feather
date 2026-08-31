@@ -1,41 +1,6 @@
-#include "MonitorManager.hpp"
-#include "../compositor/Compositor.hpp"
-#include "../../debug/Logger.hpp"
+#include "Events.hpp"
 
-MonitorManager::MonitorManager() {
-    Logger::Log(LogLevel::INFO, "[OK] MonitorManager");
-
-    wl_list_init(&m_Outputs);
-
-    m_NewOutput.notify = HandleNewOutput;
-    wl_signal_add(&g_pCompositor->m_Backend->events.new_output, &m_NewOutput);
-}
-
-MonitorManager::~MonitorManager() {
-    wl_list_remove(&m_NewOutput.link);
-
-    while (!wl_list_empty(&m_Outputs)) {
-        Monitor* monitor = wl_container_of(m_Outputs.next, monitor, m_Link);
-        DestroyMonitor(monitor);
-    }
-}
-
-void MonitorManager::DestroyMonitor(Monitor* monitor) {
-    if (!monitor) {
-        return;
-    }
-
-    Logger::Log(LogLevel::INFO, "--- Monitor Disconnected ---");
-
-    wl_list_remove(&monitor->m_Frame.link);
-    wl_list_remove(&monitor->m_RequestState.link);
-    wl_list_remove(&monitor->m_Destroy.link);
-    wl_list_remove(&monitor->m_Link);
-
-    delete monitor;
-}
-
-void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
+void Events::HandleNewOutput(wl_listener* listener, void* data) {
     wlr_output* output = static_cast<wlr_output*>(data);
     Logger::Log(LogLevel::INFO, "--- New Monitor Connected: %s ---", output->name);
 
@@ -59,15 +24,15 @@ void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
 
     monitor->m_WlrOutput = output;
 
-    monitor->m_Frame.notify = MonitorManager::HandleOutputFrame;
-    monitor->m_RequestState.notify = MonitorManager::HandleOutputRequestState;
-    monitor->m_Destroy.notify = MonitorManager::HandleOutputDestroy;
+    monitor->m_Frame.notify = Events::HandleOutputFrame;
+    monitor->m_RequestState.notify = Events::HandleOutputRequestState;
+    monitor->m_Destroy.notify = Events::HandleOutputDestroy;
 
     wl_signal_add(&output->events.frame, &monitor->m_Frame);
     wl_signal_add(&output->events.request_state, &monitor->m_RequestState);
     wl_signal_add(&output->events.destroy, &monitor->m_Destroy);
 
-    wl_list_insert(&g_pCompositor->m_MonitorManager->m_Outputs, &monitor->m_Link);
+    wl_list_insert(&g_pCompositor->m_Outputs, &monitor->m_Link);
 
     wlr_output_layout_output* l_output = wlr_output_layout_add_auto(g_pCompositor->m_OutputLayout, output);
     wlr_scene_output* scene_output = wlr_scene_output_create(g_pCompositor->m_Scene, output);
@@ -75,20 +40,31 @@ void MonitorManager::HandleNewOutput(wl_listener* listener, void* data) {
     wlr_scene_output_layout_add_output(g_pCompositor->m_SceneLayout, l_output, scene_output);
 }
 
-void MonitorManager::HandleOutputDestroy(wl_listener* listener, void* data) {
+void Events::HandleOutputDestroy(wl_listener* listener, void* data) {
     Monitor* monitor = wl_container_of(listener, monitor, m_Destroy);
 
-    g_pCompositor->m_MonitorManager->DestroyMonitor(monitor);
+    if (!monitor) {
+        return;
+    }
+
+    Logger::Log(LogLevel::INFO, "--- Monitor Disconnected ---");
+
+    wl_list_remove(&monitor->m_Frame.link);
+    wl_list_remove(&monitor->m_RequestState.link);
+    wl_list_remove(&monitor->m_Destroy.link);
+    wl_list_remove(&monitor->m_Link);
+
+    delete monitor;
 }
 
-void MonitorManager::HandleOutputRequestState(wl_listener* listener, void* data) {
+void Events::HandleOutputRequestState(wl_listener* listener, void* data) {
     Monitor* monitor = wl_container_of(listener, monitor, m_RequestState);
     
     const wlr_output_event_request_state* event = static_cast<wlr_output_event_request_state*>(data);
     wlr_output_commit_state(monitor->m_WlrOutput, event->state);
 }
 
-void MonitorManager::HandleOutputFrame(wl_listener* listener, void* data){
+void Events::HandleOutputFrame(wl_listener* listener, void* data){
     Monitor* monitor = wl_container_of(listener, monitor, m_Frame);
     wlr_scene* scene = g_pCompositor->m_Scene;
     

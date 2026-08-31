@@ -5,7 +5,7 @@
 class LayoutManager {
 public:
     LayoutManager();
-    ~LayoutManager();
+    ~LayoutManager() = default;
     
     std::string m_Layout;
     float m_MasterFact;
