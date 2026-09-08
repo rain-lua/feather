@@ -143,6 +143,10 @@ bool Compositor::Initialize() {
         return false;
     }
 
+    for (const std::string& command : m_ConfigManager->GetStartupExecs()) {
+        Spawn(command.c_str());
+    }
+
     Logger::Log(LogLevel::INFO, "========================================");
     Logger::Log(LogLevel::INFO, " Feather initialized!");
     Logger::Log(LogLevel::INFO, " socket: %s", socket);

@@ -8,6 +8,7 @@
 #include "./managers/LayoutManager.hpp"
 
 #include "./events/Events.hpp"
+#include "../util/Util.hpp"
 #include "../../debug/Logger.hpp"
 
 struct Monitor {

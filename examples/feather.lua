@@ -41,6 +41,10 @@
 --
 -- ========================================================
 
+-- use feather.startup_exec() to execute stuff on startup like this:
+
+feather.startup_exec("kitty")
+
 feather.config({
     -- ========================================================
     -- Input configuration

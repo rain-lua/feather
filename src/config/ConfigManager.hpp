@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <vector>
 
 class Leaf {
 public:
@@ -45,6 +46,7 @@ public:
     void EnsureUserConfigExists();
 
     static int Config(lua_State* L);
+    static int StartupExec(lua_State* L);
     
     void RegisterFeatherAPI();
 
@@ -55,10 +57,16 @@ public:
     bool GetBool(const std::string& path);
     std::string GetString(const std::string& path);
 
+    const std::vector<std::string>& GetStartupExecs() const {
+        return m_StartupExecs;
+    }
+
     std::string m_ConfigPath;
 
     lua_State* m_State;
     std::unique_ptr<Tree> m_RootTree;
+
+    std::vector<std::string> m_StartupExecs;
 
     Leaf* GetLeafFromPath(const std::string& path);
 

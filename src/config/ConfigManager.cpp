@@ -270,6 +270,21 @@ void ConfigManager::EnsureUserConfigExists() {
     ofs.write(reinterpret_cast<const char*>(FEATHER_DEFAULT_CONFIG_BYTES), sizeof(FEATHER_DEFAULT_CONFIG_BYTES));
 }
 
+int ConfigManager::StartupExec(lua_State* L) {
+    ConfigManager* self =
+        static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+    if (!self) {
+        return luaL_error(L, "ConfigManager missing!");
+    }
+
+    const char* command = luaL_checkstring(L, 1);
+
+    self->m_StartupExecs.emplace_back(command);
+
+    return 0;
+}
+
 int ConfigManager::Config(lua_State* L) {
     if (!lua_istable(L, 1)) {
         return luaL_error(L, "feather.config expects a table");
@@ -291,8 +306,11 @@ void ConfigManager::RegisterFeatherAPI() {
 
     lua_pushlightuserdata(m_State, this);
     lua_pushcclosure(m_State, Config, 1);
-
     lua_setfield(m_State, -2, "config");
+
+    lua_pushlightuserdata(m_State, this);
+    lua_pushcclosure(m_State, StartupExec, 1);
+    lua_setfield(m_State, -2, "startup_exec");
 
     lua_setglobal(m_State, "feather");
 }
