@@ -285,6 +285,101 @@ int ConfigManager::StartupExec(lua_State* L) {
     return 0;
 }
 
+int ConfigManager::Monitor(lua_State* L) {
+    if (!lua_istable(L, 1)) {
+        return luaL_error(L, "feather.monitor expects a table");
+    }
+
+    ConfigManager* self = static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+    if (!self) {
+        return luaL_error(L, "ConfigManager missing!");
+    }
+
+    MonitorConfig config;
+
+    lua_getfield(L, 1, "name");
+
+    if (!lua_isstring(L, -1)) {
+        lua_pop(L, 1);
+
+        return luaL_error(L, "feather.monitor: 'name' must be a string");
+    }
+
+    config.name = lua_tostring(L, -1);
+
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "mode");
+
+    if (!lua_isstring(L, -1)) {
+        lua_pop(L, 1);
+
+        return luaL_error(L,"feather.monitor: 'mode' must be a string like \"1920x1080@120\"");
+    }
+
+    const char* modeString = lua_tostring(L, -1);
+
+    int width = 0;
+    int height = 0;
+    int refresh = 0;
+
+    int parsed = std::sscanf(
+        modeString,
+        "%dx%d@%d",
+        &width,
+        &height,
+        &refresh
+    );
+
+    lua_pop(L, 1);
+
+    if (parsed != 3) {
+        return luaL_error(L, "feather.monitor: invalid mode '%s', expected WIDTHxHEIGHT@REFRESH", modeString);
+    }
+
+    if (width <= 0) {
+        return luaL_error(L, "feather.monitor: mode width must be greater than 0");
+    }
+
+    if (height <= 0) {
+        return luaL_error(L, "feather.monitor: mode height must be greater than 0");
+    }
+
+    if (refresh <= 0) {
+        return luaL_error(L, "feather.monitor: mode refresh must be greater than 0");
+    }
+
+    config.width = width;
+    config.height = height;
+    config.refresh = refresh;
+
+    Logger::Log(
+        LogLevel::INFO,
+        "Registered monitor config: %s %dx%d@%d",
+        config.name.c_str(),
+        config.width,
+        config.height,
+        config.refresh
+    );
+
+    self->m_MonitorConfigs.push_back(
+        std::move(config)
+    );
+
+    return 0;
+}
+
+const MonitorConfig* ConfigManager::GetMonitorConfig(const std::string& name) const {
+    for (const MonitorConfig& config : m_MonitorConfigs) {
+        if (config.name == name) {
+            return &config;
+        }
+    }
+
+    return nullptr;
+}
+
 int ConfigManager::Config(lua_State* L) {
     if (!lua_istable(L, 1)) {
         return luaL_error(L, "feather.config expects a table");
@@ -307,6 +402,10 @@ void ConfigManager::RegisterFeatherAPI() {
     lua_pushlightuserdata(m_State, this);
     lua_pushcclosure(m_State, Config, 1);
     lua_setfield(m_State, -2, "config");
+
+    lua_pushlightuserdata(m_State, this);
+    lua_pushcclosure(m_State, Monitor, 1);
+    lua_setfield(m_State, -2, "monitor");
 
     lua_pushlightuserdata(m_State, this);
     lua_pushcclosure(m_State, StartupExec, 1);

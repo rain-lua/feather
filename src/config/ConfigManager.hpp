@@ -37,6 +37,15 @@ public:
     Leaf* AddLeaf(const std::string& key, Leaf leaf);
 };
 
+struct MonitorConfig {
+    std::string name;
+
+    int width = 0;
+    int height = 0;
+
+    int refresh = 0;
+};
+
 class ConfigManager {
 public:
     ConfigManager();
@@ -46,6 +55,8 @@ public:
     void EnsureUserConfigExists();
 
     static int Config(lua_State* L);
+    static int Monitor(lua_State* L);
+
     static int StartupExec(lua_State* L);
     
     void RegisterFeatherAPI();
@@ -56,6 +67,10 @@ public:
     float GetFloat(const std::string& path);
     bool GetBool(const std::string& path);
     std::string GetString(const std::string& path);
+
+    std::vector<MonitorConfig> m_MonitorConfigs;
+
+    const MonitorConfig* GetMonitorConfig(const std::string& name) const;
 
     const std::vector<std::string>& GetStartupExecs() const {
         return m_StartupExecs;

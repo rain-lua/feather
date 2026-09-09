@@ -1,6 +1,5 @@
 #include "Events.hpp"
 
-
 void Events::HandleNewInput(wl_listener* listener, void* data) {
     wlr_input_device* device = static_cast<wlr_input_device*>(data);
 

@@ -11,10 +11,84 @@ void Events::HandleNewOutput(wl_listener* listener, void* data) {
     wlr_output_state_init(&state);
     wlr_output_state_set_enabled(&state, true);
 
-    wlr_output_mode* mode = wlr_output_preferred_mode(output);
+    const MonitorConfig* config = g_pCompositor->m_ConfigManager->GetMonitorConfig(output->name);
 
-    if (mode != nullptr) {
-        wlr_output_state_set_mode(&state, mode);
+    wlr_output_mode* mode = nullptr;
+
+    if (!config) {
+        Logger::Log(
+            LogLevel::WARN,
+            "No monitor config found for %s, using preferred mode",
+            output->name
+        );
+    } else {
+        Logger::Log(
+            LogLevel::INFO,
+            "Found config for %s: %dx%d@%d",
+            config->name.c_str(),
+            config->width,
+            config->height,
+            config->refresh
+        );
+
+        wlr_output_mode* candidate;
+
+        wl_list_for_each(candidate, &output->modes, link) {
+            if (candidate->width != config->width) {
+                continue;
+            }
+
+            if (candidate->height != config->height) {
+                continue;
+            }
+
+            double candidateRefresh = candidate->refresh / 1000.0;
+
+            double requestedRefresh =  static_cast<double>(config->refresh);
+
+            if (std::abs(candidateRefresh - requestedRefresh) <= 0.1) {
+                mode = candidate;
+                break;
+            }
+        }
+
+        if (!mode) {
+            Logger::Log(
+                LogLevel::WARN,
+                "Requested mode %dx%d@%d is unavailable on %s, "
+                "using preferred mode",
+                config->width,
+                config->height,
+                config->refresh,
+                output->name
+            );
+        }
+    }
+
+    if (!mode) {
+        mode = wlr_output_preferred_mode(output);
+    }
+
+    if (mode) {
+        Logger::Log(
+            LogLevel::INFO,
+            "Using mode %dx%d@%.3fHz for %s",
+            mode->width,
+            mode->height,
+            mode->refresh / 1000.0,
+            output->name
+        );
+
+        wlr_output_state_set_mode(
+            &state,
+            mode
+        );
+    } else {
+        Logger::Log(
+            LogLevel::WARN,
+            "No output mode available for %s",
+            output->name
+        );
     }
 
     wlr_output_commit_state(output, &state);

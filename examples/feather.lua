@@ -39,9 +39,23 @@
 --   feather.config({ input = { ... } })
 --   feather.config({ layout = { ... } })
 --
+-- feather.monitor(tbl)
+--   - Configures a monitor.
+--   - Can be called multiple times to configure multiple monitors.
+--   - Each monitor is configured by name.
+--
+-- feather.startup_exec(string)
+--   - Executes a program on startup.
 -- ========================================================
 
--- use feather.startup_exec() to execute stuff on startup like this:
+-- configure monitors using feather.monitor() like this:
+
+feather.monitor({
+    name = "HDMI-A-1",
+    mode = "1920x1080@120", -- the syntax is WIDTHxHEIGHT@REFRESH, e.g. "1920x1080@120"
+})
+
+-- use feather.startup_exec() to execute programs on startup like this:
 
 feather.startup_exec("kitty")
 
