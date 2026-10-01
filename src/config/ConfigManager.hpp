@@ -1,14 +1,23 @@
 #pragma once
 
+#include <fcntl.h>
 #include <lua.hpp>
-#include <string>
-#include <unordered_map>
 #include <memory>
+#include <optional>
+#include <signal.h>
+#include <string>
+#include <sys/types.h>
+#include <unordered_map>
 #include <vector>
 
 class Leaf {
 public:
-    enum Type { INT, FLOAT, BOOL, STRING };
+    enum Type {
+        INT,
+        FLOAT,
+        BOOL,
+        STRING
+    };
 
     Leaf(int v) : m_Type(INT), m_I(v) {}
     Leaf(float v) : m_Type(FLOAT), m_F(v) {}
@@ -43,23 +52,32 @@ struct MonitorConfig {
     int width = 0;
     int height = 0;
 
-    int refresh = 0;
+    double refresh = 0.00;
 };
 
 class ConfigManager {
 public:
     ConfigManager();
     ~ConfigManager();
-    
+
     bool Load(const std::string& path);
     void EnsureUserConfigExists();
 
-    static int Config(lua_State* L);
     static int Monitor(lua_State* L);
+    static int Exec(lua_State* L);
 
-    static int StartupExec(lua_State* L);
-    
+    static int TreeIndex(lua_State* L);
+    static int TreeNewIndex(lua_State* L);
+    static int ConfigureTree(lua_State* L);
+
+    static void LuaInstructionLimit(lua_State* L, lua_Debug* ar); // so while true do end doesn't halt
+
     void RegisterFeatherAPI();
+
+    void HandleExec(const std::string& command);
+    void RunStartupExecs();
+
+    std::optional<pid_t> ExecProc(const char* name);
 
     Tree* Root();
 
@@ -72,10 +90,6 @@ public:
 
     const MonitorConfig* GetMonitorConfig(const std::string& name) const;
 
-    const std::vector<std::string>& GetStartupExecs() const {
-        return m_StartupExecs;
-    }
-
     std::string m_ConfigPath;
 
     lua_State* m_State;
@@ -83,8 +97,13 @@ public:
 
     std::vector<std::string> m_StartupExecs;
 
+private:
+    bool m_FirstLoad = true;
+
     Leaf* GetLeafFromPath(const std::string& path);
 
     void ParseTable(int index, Tree* node);
     void ParseValue(int index, Leaf* leaf);
+
+    void RegisterTree(lua_State* L, Tree* tree);
 };

@@ -1,19 +1,21 @@
 #include "Logger.hpp"
 
-#include <iostream>
-#include <cstdio>
-#include <unistd.h>
 #include <chrono>
-#include <iomanip>
+#include <cstdio>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <unistd.h>
 
-#define CLR_RESET   "\033[0m"
-#define CLR_DIMMED  "\033[90m"
-#define CLR_CYAN    "\033[36m"
-#define CLR_GREEN   "\033[32m"
-#define CLR_YELLOW  "\033[33m"
-#define CLR_RED     "\033[31m"
-#define CLR_MAGENTA "\033[35m"
+#define CLR_RESET       "\033[0m"
+
+#define CLR_TIMER       "\033[37m"
+
+#define CLR_DEBUG       "\033[34m"
+#define CLR_INFO        "\033[32m"
+#define CLR_WARN        "\033[33m"
+#define CLR_ERROR       "\033[31m"
+#define CLR_CRITICAL    "\033[1;31m"
 
 bool Logger::UseColor() {
     return isatty(STDOUT_FILENO);
@@ -32,11 +34,11 @@ const char* Logger::LevelToString(LogLevel level) {
 
 const char* Logger::LevelToColor(LogLevel level) {
     switch (level) {
-        case LogLevel::DEBUG:    return CLR_CYAN;
-        case LogLevel::INFO:     return CLR_GREEN;
-        case LogLevel::WARN:     return CLR_YELLOW;
-        case LogLevel::ERROR:    return CLR_RED;
-        case LogLevel::CRITICAL: return CLR_MAGENTA;
+        case LogLevel::DEBUG:    return CLR_DEBUG;
+        case LogLevel::INFO:     return CLR_INFO;
+        case LogLevel::WARN:     return CLR_WARN;
+        case LogLevel::ERROR:    return CLR_ERROR;
+        case LogLevel::CRITICAL: return CLR_CRITICAL;
         default:                 return CLR_RESET;
     }
 }
@@ -46,6 +48,7 @@ void Logger::VLogMessage(LogLevel level, const char* fmt, va_list args) {
     vsnprintf(buffer, sizeof(buffer), fmt, args);
 
     const char* levelColor = UseColor() ? LevelToColor(level) : "";
+    const char* timerColor = UseColor() ? CLR_TIMER : "";
     const char* reset = UseColor() ? CLR_RESET : "";
 
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
@@ -59,19 +62,29 @@ void Logger::VLogMessage(LogLevel level, const char* fmt, va_list args) {
     std::ostream& out = (level == LogLevel::ERROR || level == LogLevel::CRITICAL) ? std::cerr : std::cout;
 
     if (UseColor()) {
-        out << CLR_DIMMED;
+        out << timerColor;
     }
 
-    out << "[" << std::put_time(&tm_buf, "%H:%M:%S") << "." << std::setw(3) << std::setfill('0') << ms.count() << "] ";
+    out << '['
+        << std::put_time(&tm_buf, "%H:%M:%S")
+        << '.'
+        << std::setw(3)
+        << std::setfill('0')
+        << ms.count()
+        << ']';
 
     if (UseColor()) {
-        out << CLR_RESET;
+        out << reset;
     }
 
     if (UseColor()) {
-        out << levelColor << "[" << LevelToString(level) << "]" << reset << " ";
+        out << ' '
+            << levelColor
+            << '[' << LevelToString(level) << ']'
+            << reset
+            << ' ';
     } else {
-        out << "[" << LevelToString(level) << "] ";
+        out << " [" << LevelToString(level) << "] ";
     }
 
     out << buffer << std::endl;

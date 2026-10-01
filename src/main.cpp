@@ -1,25 +1,21 @@
-#include "core/compositor/Compositor.hpp"
+#include "core/feather/Feather.hpp"
 #include "debug/Logger.hpp"
 
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(int argc, char **argv) {
     bool allow_root = false;
     bool running_elevated = (getuid() != geteuid() || geteuid() == 0);
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--this-is-fine") == 0) {
+        if (strcmp(argv[i], "--allow-root") == 0) {
             allow_root = true;
         }
     }
 
-    if (running_elevated && allow_root) {
-        Logger::Log(LogLevel::WARN, "You chose to run as root. May your backups be recent.");
-    }
-
     if (running_elevated && !allow_root) {
-        Logger::Log(LogLevel::CRITICAL, "Running with elevated privileges is forbidden unless --this-is-fine is specified.");
+        Logger::Log(LogLevel::CRITICAL, "Running with elevated privileges is forbidden unless --allow-root is specified.");
         return 1;
     }
 
@@ -29,19 +25,19 @@ int main(int argc, char **argv) {
     }
 
     try {
-        g_pCompositor = std::make_unique<Compositor>();
+        g_pFeather = std::make_unique<Feather>();
     } catch (const std::exception& e) {
         Logger::Log(LogLevel::CRITICAL, e.what());
         return 1;
     }
 
-    if (!g_pCompositor->Initialize()) {
+    if (!g_pFeather->Initialize()) {
         Logger::Log(LogLevel::CRITICAL, "Failed to initialize feather!");
         return 1;
     }
 
-    g_pCompositor->Run();
-    g_pCompositor->Cleanup();
+    g_pFeather->Run();
+    g_pFeather->Cleanup();
 
     return 0;
 }

@@ -5,9 +5,9 @@
 #include <libinput.h>     
 #include <linux/input-event-codes.h> 
 #include <wayland-server-core.h>
+#include <xkbcommon/xkbcommon.h>
 
 // https://github.com/swaywm/wlroots/issues/682
-// shit doesnt compile in c++ so we have to do some class and namespace shit
 
 #define class wlroots_class
 #define namespace wlroots_namespace
@@ -33,7 +33,6 @@ extern "C" {
     #include <wlr/types/wlr_xdg_shell.h>
     #include <wlr/types/wlr_xdg_decoration_v1.h>
     #include <wlr/util/log.h>
-    #include <xkbcommon/xkbcommon.h>
 }
 
 #undef class

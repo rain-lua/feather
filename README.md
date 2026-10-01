@@ -14,20 +14,12 @@
 
 # 🪶 Overview
 
-**Feather** is a **Wayland compositor** in **very early development.**
+**Feather** is a **C++ Wayland compositor** in **very early development.**
 
 **Built with focus on:**
 - **simplicity**
 - **performance**
 - **full system control**
-
----
-
-# ✨ Progress
-- **~~does nothing~~**
-- **~~input only~~**
-- **~~input + output only~~**
-- **input + output + windows ✨**
 
 ---
 

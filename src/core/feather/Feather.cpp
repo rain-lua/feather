@@ -1,18 +1,27 @@
-#include "Compositor.hpp"
+#include "Feather.hpp"
+
+#include "../../debug/Logger.hpp"
+
+#include "./hooks/Devices.hpp"
+#include "./hooks/Monitors.hpp"
+#include "./hooks/Windows.hpp"
+
+#include "./misc/Misc.hpp"
 
 #include <signal.h>
+#include <stdexcept>
 
 static int HandleSignal(int sig, void* data) {
     Logger::Log(LogLevel::INFO, "Received signal %d (%s)", sig, strsignal(sig));
 
     if (sig == SIGINT || sig == SIGTERM) {
-        g_pCompositor->Stop();
+        g_pFeather->Stop();
     }
 
     return 0;
 }
 
-Compositor::Compositor() {
+Feather::Feather() {
     m_Display = wl_display_create();
 
     if (!m_Display) {
@@ -70,15 +79,15 @@ Compositor::Compositor() {
     m_XDGDecorationManager = wlr_xdg_decoration_manager_v1_create(m_Display);
 }
 
-Compositor::~Compositor() {
+Feather::~Feather() {
     if (!m_CleaningUp) {
         Cleanup();
     }
 }
 
-bool Compositor::Initialize() {
+bool Feather::Initialize() {
     m_ConfigManager     = std::make_unique<ConfigManager>();
-    m_InputManager      = std::make_unique<InputManager>();
+    m_InputHandler      = std::make_unique<InputHandler>();
     m_LayoutManager     = std::make_unique<LayoutManager>();
 
     wl_list_init(&m_Outputs);
@@ -88,34 +97,19 @@ bool Compositor::Initialize() {
 
     m_CursorMode = CURSOR_PASSTHROUGH;
 
-    wl_signal_add(&m_Backend->events.new_output, &m_NewOutput);
-    wl_signal_add(&m_XDGShell->events.new_toplevel, &m_NewWindow);
-    wl_signal_add(&g_pCompositor->m_Backend->events.new_input, &m_NewInput);
+    AddSignal(&m_Backend->events.new_output,                    &m_NewOutput,              HandleNewOutput);
+    AddSignal(&m_XDGShell->events.new_toplevel,                 &m_NewWindow,              HandleNewWindow);
+    AddSignal(&m_Backend->events.new_input,                     &m_NewInput,               HandleNewInput);
 
-    wl_signal_add(&g_pCompositor->m_Cursor->events.motion, &m_CursorMotion);
-    wl_signal_add(&g_pCompositor->m_Cursor->events.motion_absolute, &m_CursorMotionAbsolute);
-    wl_signal_add(&g_pCompositor->m_Cursor->events.button, &m_CursorButton);
-    wl_signal_add(&g_pCompositor->m_Cursor->events.axis, &m_CursorAxis);
-    wl_signal_add(&g_pCompositor->m_Cursor->events.frame, &m_CursorFrame);
+    AddSignal(&m_Cursor->events.motion,                         &m_CursorMotion,           HandleCursorMotion);
+    AddSignal(&m_Cursor->events.motion_absolute,                &m_CursorMotionAbsolute,   HandleCursorMotionAbsolute);
+    AddSignal(&m_Cursor->events.button,                         &m_CursorButton,           HandleCursorButton);
+    AddSignal(&m_Cursor->events.axis,                           &m_CursorAxis,             HandleCursorAxis);
+    AddSignal(&m_Cursor->events.frame,                          &m_CursorFrame,            HandleCursorFrame);
 
-    wl_signal_add(&m_Seat->events.request_set_cursor, &m_RequestCursor);
-    wl_signal_add(&m_Seat->pointer_state.events.focus_change, &m_PointerFocusChange);
-    wl_signal_add(&m_Seat->events.request_set_selection, &m_RequestSetSelection);
-
-    m_NewOutput.notify            = Events::HandleNewOutput;
-    m_NewWindow.notify            = Events::HandleNewWindow;
-
-    m_NewInput.notify             = Events::HandleNewInput;
-
-    m_CursorMotion.notify         = Events::HandleCursorMotion;
-    m_CursorMotionAbsolute.notify = Events::HandleCursorMotionAbsolute;
-    m_CursorButton.notify         = Events::HandleCursorButton;
-    m_CursorAxis.notify           = Events::HandleCursorAxis;
-    m_CursorFrame.notify          = Events::HandleCursorFrame;
-
-    m_RequestCursor.notify        = Events::SeatRequestCursor;
-    m_RequestSetSelection.notify  = Events::SeatRequestSetSelection;
-    m_PointerFocusChange.notify   = Events::SeatPointerFocusChange;
+    AddSignal(&m_Seat->events.request_set_cursor,               &m_RequestCursor,          SeatRequestCursor);
+    AddSignal(&m_Seat->pointer_state.events.focus_change,       &m_PointerFocusChange,     SeatPointerFocusChange);
+    AddSignal(&m_Seat->events.request_set_selection,            &m_RequestSetSelection,    SeatRequestSetSelection);
 
     const char* socket = wl_display_add_socket_auto(m_Display);
 
@@ -143,9 +137,7 @@ bool Compositor::Initialize() {
         return false;
     }
 
-    for (const std::string& command : m_ConfigManager->GetStartupExecs()) {
-        Spawn(command.c_str());
-    }
+    m_ConfigManager->RunStartupExecs();
 
     Logger::Log(LogLevel::INFO, "========================================");
     Logger::Log(LogLevel::INFO, " Feather initialized!");
@@ -155,19 +147,19 @@ bool Compositor::Initialize() {
     return true;
 }
 
-void Compositor::Run() {
+void Feather::Run() {
     Logger::Log(LogLevel::INFO, "Running Feather...");
 
     wl_display_run(m_Display);
 }
 
-void Compositor::Stop() {
+void Feather::Stop() {
     Logger::Log(LogLevel::INFO, "Stopping Feather...");
 
     wl_display_terminate(m_Display);
 }
 
-void Compositor::Cleanup() {
+void Feather::Cleanup() {
     Logger::Log(LogLevel::INFO, "Exiting Feather...");
 
     if (!m_Display) {
@@ -204,7 +196,7 @@ void Compositor::Cleanup() {
     }
 
     m_LayoutManager     = nullptr;
-    m_InputManager      = nullptr;
+    m_InputHandler      = nullptr;
     m_ConfigManager     = nullptr;
 
     wlr_xcursor_manager_destroy(m_XCursorManager);
@@ -217,8 +209,8 @@ void Compositor::Cleanup() {
     wl_display_destroy(m_Display);
 }
 
-Window* Compositor::FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy) {
-	wlr_scene_node* node = wlr_scene_node_at( &g_pCompositor->m_Scene->tree.node, lx, ly, sx, sy);
+Window* Feather::FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy) {
+	wlr_scene_node* node = wlr_scene_node_at(&m_Scene->tree.node, lx, ly, sx, sy);
 
 	if (node == nullptr || node->type != WLR_SCENE_NODE_BUFFER) {
 		return nullptr;
@@ -242,7 +234,7 @@ Window* Compositor::FindWindowAt(double lx, double ly, wlr_surface** surface, do
 	return static_cast<Window*>(tree->node.data);
 }
 
-void Compositor::FocusWindow(Window* window) {
+void Feather::FocusWindow(Window* window) {
 	if (window == nullptr) {
 		return;
 	}
@@ -278,7 +270,7 @@ void Compositor::FocusWindow(Window* window) {
 	}
 }
 
-void Compositor::CloseWindow(Window* window) {
+void Feather::CloseWindow(Window* window) {
 	if (window == nullptr || window->m_XDGToplevel == nullptr) {
         return;
     }

@@ -1,10 +1,10 @@
 #include "ConfigManager.hpp"
-#include "../core/compositor/Compositor.hpp"
-#include "../core/util/Util.hpp"
+
 #include "../debug/Logger.hpp"
-#include <fstream>
+
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 
 static constexpr unsigned char FEATHER_DEFAULT_CONFIG_BYTES[] = {
     #embed "../../examples/feather.lua"
@@ -15,15 +15,12 @@ void Leaf::SetFromLua(lua_State* L, int idx) {
         case INT:
             m_I = (int)lua_tointeger(L, idx);
             break;
-
         case FLOAT:
             m_F = (float)lua_tonumber(L, idx);
             break;
-
         case BOOL:
             m_B = lua_toboolean(L, idx);
             break;
-
         case STRING:
             m_S = lua_tostring(L, idx) ? lua_tostring(L, idx) : "";
             break;
@@ -76,8 +73,6 @@ ConfigManager::ConfigManager() {
     m_State = luaL_newstate();
     luaL_openlibs(m_State);
 
-    RegisterFeatherAPI();
-
     const char* home = std::getenv("HOME");
 
     if (!home) {
@@ -99,8 +94,10 @@ ConfigManager::ConfigManager() {
     keyboard->AddLeaf("repeat_rate", Leaf(25));
     keyboard->AddLeaf("repeat_delay", Leaf(600));
 
-    layout->AddLeaf("layout", Leaf(std::string("master")));
-    master->AddLeaf("mFact", Leaf(0.5f));
+    layout->AddLeaf("mode", Leaf(std::string("master")));
+    master->AddLeaf("factor", Leaf(0.5f));
+
+    RegisterFeatherAPI();
 
     Load(m_ConfigPath);
 }
@@ -112,6 +109,7 @@ Tree* ConfigManager::Root() {
 ConfigManager::~ConfigManager() {
     if (m_State) {
         lua_close(m_State);
+
         m_State = nullptr;
     }
 }
@@ -119,18 +117,32 @@ ConfigManager::~ConfigManager() {
 bool ConfigManager::Load(const std::string& path) {
     Logger::Log(LogLevel::INFO, "Loading config: %s", path.c_str());
 
+    m_StartupExecs.clear();
+
     if (luaL_loadfile(m_State, path.c_str()) != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
         Logger::Log(LogLevel::ERROR, "[LUA] Loadfile failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
+        m_StartupExecs.clear();
         return false;
     }
 
-    if (lua_pcall(m_State, 0, 0, 0) != LUA_OK) {
+    lua_sethook(m_State, LuaInstructionLimit, LUA_MASKCOUNT, 1000000);
+
+    const int result = lua_pcall(m_State, 0, 0, 0);
+
+    lua_sethook(m_State, nullptr, 0, 0);
+
+    if (result != LUA_OK) {
         const char* err = lua_tostring(m_State, -1);
         Logger::Log(LogLevel::ERROR, "[LUA] Runtime failed: %s", err ? err : "unknown");
         lua_pop(m_State, 1);
+        m_StartupExecs.clear();
         return false;
+    }
+
+    if (m_FirstLoad) {
+        m_FirstLoad = false;
     }
 
     Logger::Log(LogLevel::INFO, "Config loaded successfully");
@@ -270,19 +282,168 @@ void ConfigManager::EnsureUserConfigExists() {
     ofs.write(reinterpret_cast<const char*>(FEATHER_DEFAULT_CONFIG_BYTES), sizeof(FEATHER_DEFAULT_CONFIG_BYTES));
 }
 
-int ConfigManager::StartupExec(lua_State* L) {
-    ConfigManager* self =
-        static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
+int ConfigManager::TreeIndex(lua_State* L) {
+    Tree* tree = static_cast<Tree*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+    if (!tree) {
+        return luaL_error(L, "Config tree missing!");
+    }
+
+    const char* key = luaL_checkstring(L, 2);
+    Leaf* leaf = tree->GetLeaf(key);
+
+    if (!leaf) {
+        return 0;
+    }
+
+    switch (leaf->m_Type) {
+        case Leaf::INT:
+            lua_pushinteger(L, leaf->m_I);
+            return 1;
+        case Leaf::FLOAT:
+            lua_pushnumber(L, leaf->m_F);
+            return 1;
+        case Leaf::BOOL:
+            lua_pushboolean(L, leaf->m_B);
+            return 1;
+        case Leaf::STRING:
+            lua_pushstring(L, leaf->m_S.c_str());
+            return 1;
+    }
+
+    return 0;
+}
+
+int ConfigManager::TreeNewIndex(lua_State* L) {
+    Tree* tree = static_cast<Tree*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+    if (!tree) {
+        return luaL_error(L, "Config tree missing!");
+    }
+
+    const char* key = luaL_checkstring(L, 2);
+    Leaf* leaf = tree->GetLeaf(key);
+
+    if (!leaf) {
+        return luaL_error(L, "unknown config key '%s'", key);
+    }
+
+    leaf->SetFromLua(L, 3);
+    return 0;
+}
+
+int ConfigManager::ConfigureTree(lua_State* L) {
+    ConfigManager* self = static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
+    Tree* tree = static_cast<Tree*>(lua_touserdata(L, lua_upvalueindex(2)));
+
+    if (!self || !tree) {
+        return luaL_error(L, "Config tree missing!");
+    }
+
+    if (!lua_istable(L, 2)) {
+        return luaL_error(L, "configuration expects a table");
+    }
+
+    self->ParseTable(lua_absindex(L, 2), tree);
+    return 0;
+}
+
+void ConfigManager::RegisterTree(lua_State* L, Tree* tree) {
+    lua_newtable(L);
+
+    int tableIndex = lua_absindex(L, -1);
+
+    for (const auto& [name, child] : tree->m_Trees) {
+        RegisterTree(L, child.get());
+        lua_setfield(L, tableIndex, name.c_str());
+    }
+
+    lua_newtable(L);
+
+    lua_pushlightuserdata(L, this);
+    lua_pushlightuserdata(L, tree);
+    lua_pushcclosure(L, ConfigureTree, 2);
+    lua_setfield(L, -2, "__call");
+
+    lua_pushlightuserdata(L, tree);
+    lua_pushcclosure(L, TreeIndex, 1);
+    lua_setfield(L, -2, "__index");
+
+    lua_pushlightuserdata(L, tree);
+    lua_pushcclosure(L, TreeNewIndex, 1);
+    lua_setfield(L, -2, "__newindex");
+
+    lua_setmetatable(L, tableIndex);
+}
+
+void ConfigManager::LuaInstructionLimit(lua_State* L, lua_Debug*) {
+    luaL_error(L, "Lua config exceeded instruction limit");
+}
+
+int ConfigManager::Exec(lua_State* L) {
+    ConfigManager* self = static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
 
     if (!self) {
         return luaL_error(L, "ConfigManager missing!");
     }
 
-    const char* command = luaL_checkstring(L, 1);
-
-    self->m_StartupExecs.emplace_back(command);
-
+    self->HandleExec(luaL_checkstring(L, 1));
     return 0;
+}
+
+void ConfigManager::RunStartupExecs() {
+    for (const std::string& command : m_StartupExecs) {
+        ExecProc(command.c_str());
+    }
+
+    m_StartupExecs.clear();
+}
+
+void ConfigManager::HandleExec(const std::string& command) {
+    if (m_FirstLoad) {
+        m_StartupExecs.emplace_back(command);
+        return;
+    }
+
+    ExecProc(command.c_str());
+}
+
+std::optional<pid_t> ConfigManager::ExecProc(const char* cmd) { // no setsid() or setsid()?
+    if (!cmd) {
+        Logger::Log(LogLevel::ERROR, "ExecProc called with null command");
+        return std::nullopt;
+    }
+
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        Logger::Log(LogLevel::ERROR, "Failed to fork process for command: %s", cmd);
+        return std::nullopt;
+    }
+
+    if (pid == 0) {
+        sigset_t set;
+
+        sigemptyset(&set);
+        sigprocmask(SIG_SETMASK, &set, nullptr);
+
+        int fd = open("/dev/null", O_RDWR);
+    
+        if (fd >= 0) {
+            dup2(fd, STDOUT_FILENO);
+            dup2(fd, STDERR_FILENO);
+
+            if (fd > 2) {
+                close(fd);
+            }
+        }
+
+        execl("/bin/sh", "sh", "-c", cmd, nullptr);
+        
+        _exit(1);
+    }
+
+    return pid;
 }
 
 int ConfigManager::Monitor(lua_State* L) {
@@ -302,12 +463,10 @@ int ConfigManager::Monitor(lua_State* L) {
 
     if (!lua_isstring(L, -1)) {
         lua_pop(L, 1);
-
         return luaL_error(L, "feather.monitor: 'name' must be a string");
     }
 
     config.name = lua_tostring(L, -1);
-
     lua_pop(L, 1);
 
     lua_getfield(L, 1, "mode");
@@ -315,22 +474,17 @@ int ConfigManager::Monitor(lua_State* L) {
     if (!lua_isstring(L, -1)) {
         lua_pop(L, 1);
 
-        return luaL_error(L,"feather.monitor: 'mode' must be a string like \"1920x1080@120\"");
+        return luaL_error(L, "feather.monitor: 'mode' must be a string like \"1920x1080@120\"");
     }
 
     const char* modeString = lua_tostring(L, -1);
 
     int width = 0;
     int height = 0;
-    int refresh = 0;
 
-    int parsed = std::sscanf(
-        modeString,
-        "%dx%d@%d",
-        &width,
-        &height,
-        &refresh
-    );
+    double refresh = 0.00;
+
+    int parsed = std::sscanf(modeString, "%dx%d@%lf", &width, &height, &refresh);
 
     lua_pop(L, 1);
 
@@ -354,18 +508,9 @@ int ConfigManager::Monitor(lua_State* L) {
     config.height = height;
     config.refresh = refresh;
 
-    Logger::Log(
-        LogLevel::INFO,
-        "Registered monitor config: %s %dx%d@%d",
-        config.name.c_str(),
-        config.width,
-        config.height,
-        config.refresh
-    );
+    Logger::Log(LogLevel::INFO, "Registered monitor config: %s %dx%d@%.3lf", config.name.c_str(), config.width, config.height, config.refresh);
 
-    self->m_MonitorConfigs.push_back(
-        std::move(config)
-    );
+    self->m_MonitorConfigs.push_back(std::move(config));
 
     return 0;
 }
@@ -380,36 +525,23 @@ const MonitorConfig* ConfigManager::GetMonitorConfig(const std::string& name) co
     return nullptr;
 }
 
-int ConfigManager::Config(lua_State* L) {
-    if (!lua_istable(L, 1)) {
-        return luaL_error(L, "feather.config expects a table");
-    }
-
-    ConfigManager* self = static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
-
-    if (!self) {
-        return luaL_error(L, "ConfigManager missing!");
-    }
-
-    self->ParseTable(lua_absindex(L, 1), self->Root());
-
-    return 0;
-}
-
 void ConfigManager::RegisterFeatherAPI() {
     lua_newtable(m_State);
 
-    lua_pushlightuserdata(m_State, this);
-    lua_pushcclosure(m_State, Config, 1);
-    lua_setfield(m_State, -2, "config");
+    int featherIndex = lua_absindex(m_State, -1);
+
+    for (const auto& [name, tree] : m_RootTree->m_Trees) {
+        RegisterTree(m_State, tree.get());
+        lua_setfield(m_State, featherIndex, name.c_str());
+    }
 
     lua_pushlightuserdata(m_State, this);
     lua_pushcclosure(m_State, Monitor, 1);
-    lua_setfield(m_State, -2, "monitor");
+    lua_setfield(m_State, featherIndex, "monitor");
 
     lua_pushlightuserdata(m_State, this);
-    lua_pushcclosure(m_State, StartupExec, 1);
-    lua_setfield(m_State, -2, "startup_exec");
+    lua_pushcclosure(m_State, Exec, 1);
+    lua_setfield(m_State, featherIndex, "exec");
 
     lua_setglobal(m_State, "feather");
 }
