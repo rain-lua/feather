@@ -6,31 +6,29 @@
 #include <filesystem>
 #include <fstream>
 
-static constexpr unsigned char FEATHER_DEFAULT_CONFIG_BYTES[] = {
-    #embed "../../examples/feather.lua"
-};
+#include "Default.hpp"
 
 void Leaf::SetFromLua(lua_State* L, int idx) {
-    switch (m_Type) {
-        case INT:
-            m_I = (int)lua_tointeger(L, idx);
-            break;
-        case FLOAT:
-            m_F = (float)lua_tonumber(L, idx);
-            break;
-        case BOOL:
-            m_B = lua_toboolean(L, idx);
-            break;
-        case STRING:
-            m_S = lua_tostring(L, idx) ? lua_tostring(L, idx) : "";
-            break;
+    switch (m_type) {
+    case INT:
+        m_I = (int)lua_tointeger(L, idx);
+        break;
+    case FLOAT:
+        m_F = (float)lua_tonumber(L, idx);
+        break;
+    case BOOL:
+        m_B = lua_toboolean(L, idx);
+        break;
+    case STRING:
+        m_S = lua_tostring(L, idx) ? lua_tostring(L, idx) : "";
+        break;
     }
 }
 
 Tree* Tree::GetTree(const std::string& key) {
-    std::unordered_map<std::string, std::unique_ptr<Tree>>::iterator it = m_Trees.find(key);
+    std::unordered_map<std::string, std::unique_ptr<Tree>>::iterator it = m_trees.find(key);
 
-    if (it != m_Trees.end()) {
+    if (it != m_trees.end()) {
         return it->second.get();
     }
 
@@ -38,9 +36,9 @@ Tree* Tree::GetTree(const std::string& key) {
 }
 
 Leaf* Tree::GetLeaf(const std::string& key) {
-    std::unordered_map<std::string, std::unique_ptr<Leaf>>::iterator it = m_Leaves.find(key);
+    std::unordered_map<std::string, std::unique_ptr<Leaf>>::iterator it = m_leaves.find(key);
 
-    if (it != m_Leaves.end()) {
+    if (it != m_leaves.end()) {
         return it->second.get();
     }
 
@@ -48,7 +46,7 @@ Leaf* Tree::GetLeaf(const std::string& key) {
 }
 
 Tree* Tree::AddTree(const std::string& key) {
-    std::unique_ptr<Tree>& ref = m_Trees[key];
+    std::unique_ptr<Tree>& ref = m_trees[key];
 
     if (!ref) {
         ref = std::make_unique<Tree>();
@@ -58,7 +56,7 @@ Tree* Tree::AddTree(const std::string& key) {
 }
 
 Leaf* Tree::AddLeaf(const std::string& key, Leaf leaf) {
-    std::unique_ptr<Leaf>& ref = m_Leaves[key];
+    std::unique_ptr<Leaf>& ref = m_leaves[key];
 
     if (!ref) {
         ref = std::make_unique<Leaf>(leaf);
@@ -68,10 +66,10 @@ Leaf* Tree::AddLeaf(const std::string& key, Leaf leaf) {
 }
 
 ConfigManager::ConfigManager() {
-    m_RootTree = std::make_unique<Tree>();
+    m_rootTree = std::make_unique<Tree>();
 
-    m_State = luaL_newstate();
-    luaL_openlibs(m_State);
+    m_state    = luaL_newstate();
+    luaL_openlibs(m_state);
 
     const char* home = std::getenv("HOME");
 
@@ -80,14 +78,14 @@ ConfigManager::ConfigManager() {
         return;
     }
 
-    m_ConfigPath = std::string(home) + "/.config/feather/feather.lua";
+    m_configPath = std::string(home) + "/.config/feather/feather.lua";
 
     EnsureUserConfigExists();
 
-    Tree* input = m_RootTree->AddTree("input");
-    Tree* layout = m_RootTree->AddTree("layout");
+    Tree* input    = m_rootTree->AddTree("input");
+    Tree* layout   = m_rootTree->AddTree("layout");
 
-    Tree* master = layout->AddTree("master");
+    Tree* master   = layout->AddTree("master");
     Tree* keyboard = input->AddTree("keyboard");
 
     keyboard->AddLeaf("layout", Leaf(std::string("us")));
@@ -99,50 +97,50 @@ ConfigManager::ConfigManager() {
 
     RegisterFeatherAPI();
 
-    Load(m_ConfigPath);
+    Load(m_configPath);
 }
 
 Tree* ConfigManager::Root() {
-    return m_RootTree.get();
+    return m_rootTree.get();
 }
 
 ConfigManager::~ConfigManager() {
-    if (m_State) {
-        lua_close(m_State);
+    if (m_state) {
+        lua_close(m_state);
 
-        m_State = nullptr;
+        m_state = nullptr;
     }
 }
 
 bool ConfigManager::Load(const std::string& path) {
     Logger::Log(LogLevel::INFO, "Loading config: %s", path.c_str());
 
-    m_StartupExecs.clear();
+    m_startupExecs.clear();
 
-    if (luaL_loadfile(m_State, path.c_str()) != LUA_OK) {
-        const char* err = lua_tostring(m_State, -1);
+    if (luaL_loadfile(m_state, path.c_str()) != LUA_OK) {
+        const char* err = lua_tostring(m_state, -1);
         Logger::Log(LogLevel::ERROR, "[LUA] Loadfile failed: %s", err ? err : "unknown");
-        lua_pop(m_State, 1);
-        m_StartupExecs.clear();
+        lua_pop(m_state, 1);
+        m_startupExecs.clear();
         return false;
     }
 
-    lua_sethook(m_State, LuaInstructionLimit, LUA_MASKCOUNT, 1000000);
+    lua_sethook(m_state, LuaInstructionLimit, LUA_MASKCOUNT, 1000000);
 
-    const int result = lua_pcall(m_State, 0, 0, 0);
+    const int result = lua_pcall(m_state, 0, 0, 0);
 
-    lua_sethook(m_State, nullptr, 0, 0);
+    lua_sethook(m_state, nullptr, 0, 0);
 
     if (result != LUA_OK) {
-        const char* err = lua_tostring(m_State, -1);
+        const char* err = lua_tostring(m_state, -1);
         Logger::Log(LogLevel::ERROR, "[LUA] Runtime failed: %s", err ? err : "unknown");
-        lua_pop(m_State, 1);
-        m_StartupExecs.clear();
+        lua_pop(m_state, 1);
+        m_startupExecs.clear();
         return false;
     }
 
-    if (m_FirstLoad) {
-        m_FirstLoad = false;
+    if (m_firstLoad) {
+        m_firstLoad = false;
     }
 
     Logger::Log(LogLevel::INFO, "Config loaded successfully");
@@ -150,15 +148,15 @@ bool ConfigManager::Load(const std::string& path) {
 }
 
 Leaf* ConfigManager::GetLeafFromPath(const std::string& path) {
-    Tree* node = m_RootTree.get();
+    Tree*  node  = m_rootTree.get();
 
     size_t start = 0;
-    size_t end = 0;
+    size_t end   = 0;
 
     while ((end = path.find('.', start)) != std::string::npos) {
         std::string key = path.substr(start, end - start);
 
-        node = node->GetTree(key);
+        node            = node->GetTree(key);
 
         if (!node) {
             Logger::Log(LogLevel::ERROR, "Invalid config path: %s", path.c_str());
@@ -175,7 +173,7 @@ Leaf* ConfigManager::GetLeafFromPath(const std::string& path) {
 int ConfigManager::GetInt(const std::string& path) {
     Leaf* leaf = GetLeafFromPath(path);
 
-    if (!leaf || leaf->m_Type != Leaf::INT) {
+    if (!leaf || leaf->m_type != Leaf::INT) {
         return 0;
     }
 
@@ -185,7 +183,7 @@ int ConfigManager::GetInt(const std::string& path) {
 float ConfigManager::GetFloat(const std::string& path) {
     Leaf* leaf = GetLeafFromPath(path);
 
-    if (!leaf || leaf->m_Type != Leaf::FLOAT) {
+    if (!leaf || leaf->m_type != Leaf::FLOAT) {
         return 0.f;
     }
 
@@ -195,7 +193,7 @@ float ConfigManager::GetFloat(const std::string& path) {
 bool ConfigManager::GetBool(const std::string& path) {
     Leaf* leaf = GetLeafFromPath(path);
 
-    if (!leaf || leaf->m_Type != Leaf::BOOL) {
+    if (!leaf || leaf->m_type != Leaf::BOOL) {
         return false;
     }
 
@@ -205,7 +203,7 @@ bool ConfigManager::GetBool(const std::string& path) {
 std::string ConfigManager::GetString(const std::string& path) {
     Leaf* leaf = GetLeafFromPath(path);
 
-    if (!leaf || leaf->m_Type != Leaf::STRING) {
+    if (!leaf || leaf->m_type != Leaf::STRING) {
         return "";
     }
 
@@ -213,50 +211,50 @@ std::string ConfigManager::GetString(const std::string& path) {
 }
 
 void ConfigManager::ParseTable(int index, Tree* node) {
-    index = lua_absindex(m_State, index);
+    index = lua_absindex(m_state, index);
 
-    lua_pushnil(m_State);
+    lua_pushnil(m_state);
 
-    while (lua_next(m_State, index)) {
-        if (!lua_isstring(m_State, -2)) {
-            lua_pop(m_State, 1);
+    while (lua_next(m_state, index)) {
+        if (!lua_isstring(m_state, -2)) {
+            lua_pop(m_state, 1);
             continue;
         }
 
-        std::string key = lua_tostring(m_State, -2);
-        Leaf* leaf = node->GetLeaf(key);
+        std::string key  = lua_tostring(m_state, -2);
+        Leaf*       leaf = node->GetLeaf(key);
 
         if (leaf) {
             ParseValue(-1, leaf);
-            lua_pop(m_State, 1);
+            lua_pop(m_state, 1);
             continue;
         }
 
         Tree* tree = node->GetTree(key);
 
         if (tree) {
-            if (lua_istable(m_State, -1)) {
+            if (lua_istable(m_state, -1)) {
                 ParseTable(-1, tree);
             }
 
-            lua_pop(m_State, 1);
+            lua_pop(m_state, 1);
             continue;
         }
 
         Logger::Log(LogLevel::DEBUG, "Unknown config key ignored: %s", key.c_str());
-        lua_pop(m_State, 1);
+        lua_pop(m_state, 1);
     }
 }
 
 void ConfigManager::ParseValue(int index, Leaf* leaf) {
-    leaf->SetFromLua(m_State, index);
+    leaf->SetFromLua(m_state, index);
 }
 
 void ConfigManager::EnsureUserConfigExists() {
-    namespace fs = std::filesystem;
+    namespace fs         = std::filesystem;
 
-    fs::path dir = fs::path(std::getenv("HOME")) / ".config" / "feather";
-    fs::path file = dir / "feather.lua";
+    fs::path        dir  = fs::path(std::getenv("HOME")) / ".config" / "feather";
+    fs::path        file = dir / "feather.lua";
 
     std::error_code ec;
     fs::create_directories(dir, ec);
@@ -289,26 +287,26 @@ int ConfigManager::TreeIndex(lua_State* L) {
         return luaL_error(L, "Config tree missing!");
     }
 
-    const char* key = luaL_checkstring(L, 2);
-    Leaf* leaf = tree->GetLeaf(key);
+    const char* key  = luaL_checkstring(L, 2);
+    Leaf*       leaf = tree->GetLeaf(key);
 
     if (!leaf) {
         return 0;
     }
 
-    switch (leaf->m_Type) {
-        case Leaf::INT:
-            lua_pushinteger(L, leaf->m_I);
-            return 1;
-        case Leaf::FLOAT:
-            lua_pushnumber(L, leaf->m_F);
-            return 1;
-        case Leaf::BOOL:
-            lua_pushboolean(L, leaf->m_B);
-            return 1;
-        case Leaf::STRING:
-            lua_pushstring(L, leaf->m_S.c_str());
-            return 1;
+    switch (leaf->m_type) {
+    case Leaf::INT:
+        lua_pushinteger(L, leaf->m_I);
+        return 1;
+    case Leaf::FLOAT:
+        lua_pushnumber(L, leaf->m_F);
+        return 1;
+    case Leaf::BOOL:
+        lua_pushboolean(L, leaf->m_B);
+        return 1;
+    case Leaf::STRING:
+        lua_pushstring(L, leaf->m_S.c_str());
+        return 1;
     }
 
     return 0;
@@ -321,8 +319,8 @@ int ConfigManager::TreeNewIndex(lua_State* L) {
         return luaL_error(L, "Config tree missing!");
     }
 
-    const char* key = luaL_checkstring(L, 2);
-    Leaf* leaf = tree->GetLeaf(key);
+    const char* key  = luaL_checkstring(L, 2);
+    Leaf*       leaf = tree->GetLeaf(key);
 
     if (!leaf) {
         return luaL_error(L, "unknown config key '%s'", key);
@@ -334,7 +332,7 @@ int ConfigManager::TreeNewIndex(lua_State* L) {
 
 int ConfigManager::ConfigureTree(lua_State* L) {
     ConfigManager* self = static_cast<ConfigManager*>(lua_touserdata(L, lua_upvalueindex(1)));
-    Tree* tree = static_cast<Tree*>(lua_touserdata(L, lua_upvalueindex(2)));
+    Tree*          tree = static_cast<Tree*>(lua_touserdata(L, lua_upvalueindex(2)));
 
     if (!self || !tree) {
         return luaL_error(L, "Config tree missing!");
@@ -353,7 +351,7 @@ void ConfigManager::RegisterTree(lua_State* L, Tree* tree) {
 
     int tableIndex = lua_absindex(L, -1);
 
-    for (const auto& [name, child] : tree->m_Trees) {
+    for (const auto& [name, child] : tree->m_trees) {
         RegisterTree(L, child.get());
         lua_setfield(L, tableIndex, name.c_str());
     }
@@ -392,16 +390,16 @@ int ConfigManager::Exec(lua_State* L) {
 }
 
 void ConfigManager::RunStartupExecs() {
-    for (const std::string& command : m_StartupExecs) {
+    for (const std::string& command : m_startupExecs) {
         ExecProc(command.c_str());
     }
 
-    m_StartupExecs.clear();
+    m_startupExecs.clear();
 }
 
 void ConfigManager::HandleExec(const std::string& command) {
-    if (m_FirstLoad) {
-        m_StartupExecs.emplace_back(command);
+    if (m_firstLoad) {
+        m_startupExecs.emplace_back(command);
         return;
     }
 
@@ -428,7 +426,7 @@ std::optional<pid_t> ConfigManager::ExecProc(const char* cmd) { // no setsid() o
         sigprocmask(SIG_SETMASK, &set, nullptr);
 
         int fd = open("/dev/null", O_RDWR);
-    
+
         if (fd >= 0) {
             dup2(fd, STDOUT_FILENO);
             dup2(fd, STDERR_FILENO);
@@ -439,7 +437,7 @@ std::optional<pid_t> ConfigManager::ExecProc(const char* cmd) { // no setsid() o
         }
 
         execl("/bin/sh", "sh", "-c", cmd, nullptr);
-        
+
         _exit(1);
     }
 
@@ -479,12 +477,12 @@ int ConfigManager::Monitor(lua_State* L) {
 
     const char* modeString = lua_tostring(L, -1);
 
-    int width = 0;
-    int height = 0;
+    int         width      = 0;
+    int         height     = 0;
 
-    double refresh = 0.00;
+    double      refresh    = 0.00;
 
-    int parsed = std::sscanf(modeString, "%dx%d@%lf", &width, &height, &refresh);
+    int         parsed     = std::sscanf(modeString, "%dx%d@%lf", &width, &height, &refresh);
 
     lua_pop(L, 1);
 
@@ -504,19 +502,19 @@ int ConfigManager::Monitor(lua_State* L) {
         return luaL_error(L, "feather.monitor: mode refresh must be greater than 0");
     }
 
-    config.width = width;
-    config.height = height;
+    config.width   = width;
+    config.height  = height;
     config.refresh = refresh;
 
     Logger::Log(LogLevel::INFO, "Registered monitor config: %s %dx%d@%.3lf", config.name.c_str(), config.width, config.height, config.refresh);
 
-    self->m_MonitorConfigs.push_back(std::move(config));
+    self->m_monitorConfigs.push_back(std::move(config));
 
     return 0;
 }
 
 const MonitorConfig* ConfigManager::GetMonitorConfig(const std::string& name) const {
-    for (const MonitorConfig& config : m_MonitorConfigs) {
+    for (const MonitorConfig& config : m_monitorConfigs) {
         if (config.name == name) {
             return &config;
         }
@@ -526,22 +524,22 @@ const MonitorConfig* ConfigManager::GetMonitorConfig(const std::string& name) co
 }
 
 void ConfigManager::RegisterFeatherAPI() {
-    lua_newtable(m_State);
+    lua_newtable(m_state);
 
-    int featherIndex = lua_absindex(m_State, -1);
+    int featherIndex = lua_absindex(m_state, -1);
 
-    for (const auto& [name, tree] : m_RootTree->m_Trees) {
-        RegisterTree(m_State, tree.get());
-        lua_setfield(m_State, featherIndex, name.c_str());
+    for (const auto& [name, tree] : m_rootTree->m_trees) {
+        RegisterTree(m_state, tree.get());
+        lua_setfield(m_state, featherIndex, name.c_str());
     }
 
-    lua_pushlightuserdata(m_State, this);
-    lua_pushcclosure(m_State, Monitor, 1);
-    lua_setfield(m_State, featherIndex, "monitor");
+    lua_pushlightuserdata(m_state, this);
+    lua_pushcclosure(m_state, Monitor, 1);
+    lua_setfield(m_state, featherIndex, "monitor");
 
-    lua_pushlightuserdata(m_State, this);
-    lua_pushcclosure(m_State, Exec, 1);
-    lua_setfield(m_State, featherIndex, "exec");
+    lua_pushlightuserdata(m_state, this);
+    lua_pushcclosure(m_state, Exec, 1);
+    lua_setfield(m_state, featherIndex, "exec");
 
-    lua_setglobal(m_State, "feather");
+    lua_setglobal(m_state, "feather");
 }

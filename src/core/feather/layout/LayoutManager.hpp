@@ -3,12 +3,12 @@
 #include "../../../include/Defines.hpp"
 
 class LayoutManager {
-public:
+  public:
     LayoutManager();
     ~LayoutManager() = default;
-    
-    std::string m_Layout;
-    float m_MasterFact;
 
-    void Tile();
+    std::string m_layout;
+    float       m_masterFact;
+
+    void        Tile();
 };

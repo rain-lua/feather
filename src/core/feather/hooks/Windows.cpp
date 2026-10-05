@@ -1,68 +1,29 @@
 #include "Windows.hpp"
 
-#include "../../feather/Feather.hpp"
 #include "../../../debug/Logger.hpp"
+#include "../../feather/Feather.hpp"
 
 void HandleNewWindow(wl_listener* listener, void* data) {
     Logger::Log(LogLevel::DEBUG, "New window!");
 
-    wlr_xdg_toplevel* XDG_Toplevel = static_cast<wlr_xdg_toplevel*>(data);
+    wlr_xdg_toplevel* xdgToplevel     = static_cast<wlr_xdg_toplevel*>(data);
 
-    Window* window = new Window;
+    Window*           newWindow       = new Window;
 
-    window->m_XDGToplevel = XDG_Toplevel;
-    window->m_SceneTree = wlr_scene_xdg_surface_create(&g_pFeather->m_Scene->tree, XDG_Toplevel->base);
+    newWindow->m_xdgToplevel          = xdgToplevel;
+    newWindow->m_sceneTree            = wlr_scene_xdg_surface_create(&g_Feather->m_scene->tree, xdgToplevel->base);
 
-    window->m_SceneTree->node.data = window;
-    XDG_Toplevel->base->data = window->m_SceneTree;
+    newWindow->m_sceneTree->node.data = newWindow;
+    xdgToplevel->base->data           = newWindow->m_sceneTree;
 
-    window->m_Map.Init(
-        &XDG_Toplevel->base->surface->events.map,
-        window,
-        HandleWindowMap
-    );
-
-    window->m_Unmap.Init(
-        &XDG_Toplevel->base->surface->events.unmap,
-        window,
-        HandleWindowUnmap
-    );
-
-    window->m_Commit.Init(
-        &XDG_Toplevel->base->surface->events.commit,
-        window,
-        HandleWindowCommit
-    );
-
-    window->m_Destroy.Init(
-        &XDG_Toplevel->events.destroy,
-        window,
-        HandleWindowDestroy
-    );
-
-    window->m_RequestMove.Init(
-        &XDG_Toplevel->events.request_move,
-        window,
-        HandleWindowRequestMove
-    );
-
-    window->m_RequestResize.Init(
-        &XDG_Toplevel->events.request_resize,
-        window,
-        HandleWindowRequestResize
-    );
-
-    window->m_RequestMaximize.Init(
-        &XDG_Toplevel->events.request_maximize,
-        window,
-        HandleWindowRequestMaximize
-    );
-
-    window->m_RequestFullscreen.Init(
-        &XDG_Toplevel->events.request_fullscreen,
-        window,
-        HandleWindowRequestFullscreen
-    );
+    newWindow->m_map.Init(&xdgToplevel->base->surface->events.map, newWindow, HandleWindowMap);
+    newWindow->m_unmap.Init(&xdgToplevel->base->surface->events.unmap, newWindow, HandleWindowUnmap);
+    newWindow->m_commit.Init(&xdgToplevel->base->surface->events.commit, newWindow, HandleWindowCommit);
+    newWindow->m_destroy.Init(&xdgToplevel->events.destroy, newWindow, HandleWindowDestroy);
+    newWindow->m_requestMove.Init(&xdgToplevel->events.request_move, newWindow, HandleWindowRequestMove);
+    newWindow->m_requestResize.Init(&xdgToplevel->events.request_resize, newWindow, HandleWindowRequestResize);
+    newWindow->m_requestMaximize.Init(&xdgToplevel->events.request_maximize, newWindow, HandleWindowRequestMaximize);
+    newWindow->m_requestFullscreen.Init(&xdgToplevel->events.request_fullscreen, newWindow, HandleWindowRequestFullscreen);
 }
 
 void HandleWindowMap(void* owner, void* data) {
@@ -70,32 +31,25 @@ void HandleWindowMap(void* owner, void* data) {
 
     Logger::Log(LogLevel::DEBUG, "Window map");
 
-    wl_list_insert(
-        &g_pFeather->m_Windows,
-        &window->m_Link
-    );
+    wl_list_insert(&g_Feather->m_windows, &window->m_link);
 
-    g_pFeather->m_LayoutManager->Tile();
-    g_pFeather->FocusWindow(window);
+    g_Feather->m_LayoutManager->Tile();
+    g_Feather->FocusWindow(window);
 }
 
 void HandleWindowUnmap(void* owner, void* data) {
     Window* window = static_cast<Window*>(owner);
 
-    wl_list_remove(&window->m_Link);
+    wl_list_remove(&window->m_link);
 
-    g_pFeather->m_LayoutManager->Tile();
+    g_Feather->m_LayoutManager->Tile();
 }
 
 void HandleWindowCommit(void* owner, void* data) {
     Window* window = static_cast<Window*>(owner);
 
-    if (window->m_XDGToplevel->base->initial_commit) {
-        wlr_xdg_toplevel_set_size(
-            window->m_XDGToplevel,
-            0,
-            0
-        );
+    if (window->m_xdgToplevel->base->initial_commit) {
+        wlr_xdg_toplevel_set_size(window->m_xdgToplevel, 0, 0);
     }
 }
 
@@ -104,28 +58,24 @@ void HandleWindowRequestMove(void* owner, void* data) {
 }
 
 void HandleWindowRequestResize(void* owner, void* data) {
-    Window* window = static_cast<Window*>(owner);
+    Window*                        window = static_cast<Window*>(owner);
 
-    wlr_xdg_toplevel_resize_event* event = static_cast<wlr_xdg_toplevel_resize_event*>(data);
+    wlr_xdg_toplevel_resize_event* event  = static_cast<wlr_xdg_toplevel_resize_event*>(data);
 }
 
 void HandleWindowRequestMaximize(void* owner, void* data) {
     Window* window = static_cast<Window*>(owner);
 
-    if (window->m_XDGToplevel->base->initialized) {
-        wlr_xdg_surface_schedule_configure(
-            window->m_XDGToplevel->base
-        );
+    if (window->m_xdgToplevel->base->initialized) {
+        wlr_xdg_surface_schedule_configure(window->m_xdgToplevel->base);
     }
 }
 
 void HandleWindowRequestFullscreen(void* owner, void* data) {
     Window* window = static_cast<Window*>(owner);
 
-    if (window->m_XDGToplevel->base->initialized) {
-        wlr_xdg_surface_schedule_configure(
-            window->m_XDGToplevel->base
-        );
+    if (window->m_xdgToplevel->base->initialized) {
+        wlr_xdg_surface_schedule_configure(window->m_xdgToplevel->base);
     }
 }
 
@@ -136,26 +86,20 @@ void HandleWindowDestroy(void* owner, void* data) {
         return;
     }
 
-    if (!wl_list_empty(&g_pFeather->m_Windows)) {
-        g_pFeather->FocusWindow(
-            wl_container_of(
-                g_pFeather->m_Windows.prev,
-                g_pFeather->m_FocusedWindow,
-                m_Link
-            )
-        );
+    if (!wl_list_empty(&g_Feather->m_windows)) {
+        g_Feather->FocusWindow(wl_container_of(g_Feather->m_windows.prev, g_Feather->m_focusedWindow, m_link));
     } else {
-        g_pFeather->m_FocusedWindow = nullptr;
+        g_Feather->m_focusedWindow = nullptr;
     }
 
-	window->m_Map.Remove();
-    window->m_Unmap.Remove();
-    window->m_Commit.Remove();
-    window->m_Destroy.Remove();
-    window->m_RequestMove.Remove();
-    window->m_RequestResize.Remove();
-    window->m_RequestMaximize.Remove();
-    window->m_RequestFullscreen.Remove();
+    window->m_map.Remove();
+    window->m_unmap.Remove();
+    window->m_commit.Remove();
+    window->m_destroy.Remove();
+    window->m_requestMove.Remove();
+    window->m_requestResize.Remove();
+    window->m_requestMaximize.Remove();
+    window->m_requestFullscreen.Remove();
 
     delete window;
 }

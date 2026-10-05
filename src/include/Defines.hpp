@@ -1,4 +1,3 @@
 #include "Includes.hpp"
 
-#define WLLISTENER(name) \
-    wl_listener name
+#define WLLISTENER(name) wl_listener name

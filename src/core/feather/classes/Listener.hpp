@@ -9,21 +9,21 @@ class Listener {
     Listener();
     ~Listener();
 
-    Listener(const Listener&)            = delete;
-    Listener(Listener&&)                 = delete;
-    Listener& operator=(const Listener&) = delete;
-    Listener& operator=(Listener&&)      = delete;
+    Listener(const Listener&)                     = delete;
+    Listener(Listener&&)                          = delete;
+    Listener&          operator=(const Listener&) = delete;
+    Listener&          operator=(Listener&&)      = delete;
 
-    void Init(wl_signal* signal, void* owner, Callback callback);
+    void               Init(wl_signal* signal, void* owner, Callback callback);
 
-    void Remove();
+    void               Remove();
 
     [[nodiscard]] bool IsConnected() const;
 
   private:
     static void Notify(wl_listener* listener, void* data);
 
-    wl_listener m_Listener;
-    void* m_Owner;
-    Callback m_Callback;
+    wl_listener m_listener;
+    void*       m_owner;
+    Callback    m_callback;
 };

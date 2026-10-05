@@ -1,0 +1,7 @@
+# TODO: find a way to indent extern c include block? (we could use // clang-format on/off but that looks bad)
+src/include/Includes.hpp
+
+# same here
+src/config/Default.hpp
+
+# alright, from what i've read, i don't think it's possible

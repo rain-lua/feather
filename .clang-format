@@ -1,0 +1,28 @@
+Language: Cpp
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+ColumnLimit: 400
+
+AlignConsecutiveDeclarations:
+    Enabled:          true
+    AcrossEmptyLines: true
+    AcrossComments:   true
+
+AlignConsecutiveAssignments:
+    Enabled:          true
+    AcrossEmptyLines: true
+    AcrossComments:   true
+
+AlignConsecutiveMacros:
+    Enabled:          true
+    AcrossEmptyLines: true
+    AcrossComments:   true
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine:    Never
+
+BinPackArguments:  true
+BinPackParameters: true
+
+PointerAlignment:  Left

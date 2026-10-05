@@ -3,8 +3,8 @@
 #include "../../../include/Defines.hpp"
 
 class InputHandler {
-public:
-    InputHandler() = default;
+  public:
+    InputHandler()  = default;
     ~InputHandler() = default;
 
     static void SeatRequestCursor(wl_listener* listener, void* data);
@@ -24,6 +24,6 @@ public:
     static void HandleCursorAxis(wl_listener* listener, void* data);
     static void HandleCursorFrame(wl_listener* listener, void* data);
 
-    void ProcessCursorMotion(uint32_t time);
-    void ResetCursorMode();
+    void        ProcessCursorMotion(uint32_t time);
+    void        ResetCursorMode();
 };

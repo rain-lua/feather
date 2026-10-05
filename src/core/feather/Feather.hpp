@@ -1,35 +1,35 @@
 #pragma once
 
-#include "../../include/Defines.hpp"
 #include "../../config/ConfigManager.hpp"
+#include "../../include/Defines.hpp"
 
 #include "./classes/Listener.hpp"
 #include "./handlers/InputHandler.hpp"
 #include "./layout/LayoutManager.hpp"
 
 struct Monitor {
-    wl_list m_Link;
-    wlr_output* m_WlrOutput;
+    wl_list     m_link;
+    wlr_output* m_output;
 
-    Listener m_Frame;
-    Listener m_RequestState;
-    Listener m_Destroy;
+    Listener    m_frame;
+    Listener    m_requestState;
+    Listener    m_destroy;
 };
 
 struct Keyboard {
-    wl_list m_Link;
-    wlr_keyboard* m_WlrKeyboard;
+    wl_list       m_link;
+    wlr_keyboard* m_keyboard;
 
-    Listener m_Modifiers;
-    Listener m_Key;
-    Listener m_Destroy;
+    Listener      m_modifiers;
+    Listener      m_key;
+    Listener      m_destroy;
 };
 
 struct Pointer {
-    wlr_input_device* m_Device;
+    wlr_input_device* m_device;
 
-    Listener m_Destroy;
-    wl_list m_Link;
+    Listener          m_destroy;
+    wl_list           m_link;
 };
 
 enum CursorMode {
@@ -39,93 +39,93 @@ enum CursorMode {
 };
 
 struct Window {
-    wl_list m_Link;
+    wl_list           m_link;
 
-    wlr_xdg_toplevel* m_XDGToplevel;
-    wlr_scene_tree* m_SceneTree;
+    wlr_xdg_toplevel* m_xdgToplevel;
+    wlr_scene_tree*   m_sceneTree;
 
-    Listener m_Map;
-    Listener m_Unmap;
-    Listener m_Commit;
-    Listener m_Destroy;
-    Listener m_RequestMove;
-    Listener m_RequestResize;
-    Listener m_RequestMaximize;
-    Listener m_RequestFullscreen;
+    Listener          m_map;
+    Listener          m_unmap;
+    Listener          m_commit;
+    Listener          m_destroy;
+    Listener          m_requestMove;
+    Listener          m_requestResize;
+    Listener          m_requestMaximize;
+    Listener          m_requestFullscreen;
 };
 
 class Feather {
-public:
+  public:
     Feather();
     ~Feather();
 
-    bool Initialize();
-    void Run();
+    bool                           Initialize();
+    void                           Run();
 
-    void Stop();
-    void Cleanup();
+    void                           Stop();
+    void                           Cleanup();
 
-    bool m_CleaningUp;
+    wl_display*                    m_display;
+    wl_event_loop*                 m_eventLoop;
 
-    wl_display* m_Display;
-    wl_event_loop* m_EventLoop;
+    wlr_backend*                   m_backend;
+    wlr_renderer*                  m_renderer;
 
-    wlr_backend* m_Backend;
-    wlr_renderer* m_Renderer;
+    wl_event_source*               m_sigIntSource;
+    wl_event_source*               m_sigTermSource;
 
-    wl_event_source* m_SigIntSource;
-    wl_event_source* m_SigTermSource;
+    wlr_allocator*                 m_allocator;
+    wlr_compositor*                m_compositor;
+    wlr_subcompositor*             m_subcompositor;
+    wlr_data_device_manager*       m_dataDeviceManager;
+    wlr_output_layout*             m_outputLayout;
 
-    wlr_allocator* m_Allocator;
-    wlr_compositor* m_Compositor;
-    wlr_subcompositor* m_SubCompositor;
-    wlr_data_device_manager* m_DataDeviceManager;
-    wlr_output_layout* m_OutputLayout;
+    wlr_xwayland*                  m_xwayland;
 
-    wlr_xwayland* m_XWayland;
+    wlr_scene*                     m_scene;
+    wlr_scene_output_layout*       m_sceneLayout;
 
-    wlr_scene* m_Scene;
-    wlr_scene_output_layout* m_SceneLayout;
+    wlr_xdg_shell*                 m_xdgShell;
+    wlr_xdg_decoration_manager_v1* m_xdgDecorationManager;
 
-    wlr_xdg_shell* m_XDGShell;
-    wlr_xdg_decoration_manager_v1* m_XDGDecorationManager;
+    wlr_cursor*                    m_cursor;
+    wlr_xcursor_manager*           m_xcursorManager;
 
-    wlr_cursor* m_Cursor;
-    wlr_xcursor_manager* m_XCursorManager;
+    wlr_seat*                      m_seat;
 
-    wlr_seat* m_Seat;
-
-    std::unique_ptr<InputHandler> m_InputHandler;
+    std::unique_ptr<InputHandler>  m_InputHandler;
     std::unique_ptr<ConfigManager> m_ConfigManager;
     std::unique_ptr<LayoutManager> m_LayoutManager;
 
-    Window* FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
+    bool                           m_cleaningUp;
 
-    void FocusWindow(Window* window);
-    void CloseWindow(Window* window);
+    Window*                        FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy);
 
-    Window* m_FocusedWindow;
+    void                           FocusWindow(Window* window);
+    void                           CloseWindow(Window* window);
 
-    CursorMode m_CursorMode;
+    Window*                        m_focusedWindow;
 
-    wl_list m_Outputs;
-    wl_list m_Windows;
-    wl_list m_Pointers;
-    wl_list m_Keyboards;
+    CursorMode                     m_cursorMode;
 
-    WLLISTENER(m_NewOutput);
-    WLLISTENER(m_NewWindow);
-    WLLISTENER(m_NewInput);
+    wl_list                        m_outputs;
+    wl_list                        m_windows;
+    wl_list                        m_pointers;
+    wl_list                        m_keyboards;
 
-    WLLISTENER(m_CursorMotion);
-    WLLISTENER(m_CursorMotionAbsolute);
-    WLLISTENER(m_CursorButton);
-    WLLISTENER(m_CursorAxis);
-    WLLISTENER(m_CursorFrame);
+    WLLISTENER(m_newOutput);
+    WLLISTENER(m_newWindow);
+    WLLISTENER(m_newInput);
 
-    WLLISTENER(m_RequestCursor);
-    WLLISTENER(m_PointerFocusChange);
-    WLLISTENER(m_RequestSetSelection);
+    WLLISTENER(m_cursorMotion);
+    WLLISTENER(m_cursorMotionAbsolute);
+    WLLISTENER(m_cursorButton);
+    WLLISTENER(m_cursorAxis);
+    WLLISTENER(m_cursorFrame);
+
+    WLLISTENER(m_requestCursor);
+    WLLISTENER(m_pointerFocusChange);
+    WLLISTENER(m_requestSetSelection);
 };
 
-inline std::unique_ptr<Feather> g_pFeather;
+inline std::unique_ptr<Feather> g_Feather;

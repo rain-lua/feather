@@ -15,108 +15,107 @@ static int HandleSignal(int sig, void* data) {
     Logger::Log(LogLevel::INFO, "Received signal %d (%s)", sig, strsignal(sig));
 
     if (sig == SIGINT || sig == SIGTERM) {
-        g_pFeather->Stop();
+        g_Feather->Stop();
     }
 
     return 0;
 }
 
 Feather::Feather() {
-    m_Display = wl_display_create();
+    m_display = wl_display_create();
 
-    if (!m_Display) {
+    if (!m_display) {
         throw std::runtime_error("Failed to create display!");
     }
 
-    m_EventLoop = wl_display_get_event_loop(m_Display);
+    m_eventLoop = wl_display_get_event_loop(m_display);
+    m_backend   = wlr_backend_autocreate(m_eventLoop, nullptr);
 
-    m_Backend = wlr_backend_autocreate(m_EventLoop, nullptr);
-
-    if (!m_Backend) {
+    if (!m_backend) {
         throw std::runtime_error("Failed to create backend!");
     }
 
-    m_Renderer = wlr_renderer_autocreate(m_Backend);
+    m_renderer = wlr_renderer_autocreate(m_backend);
 
-    if (!m_Renderer) {
+    if (!m_renderer) {
         throw std::runtime_error("Failed to create renderer!");
     }
 
-    wlr_renderer_init_wl_display(m_Renderer, m_Display);
+    wlr_renderer_init_wl_display(m_renderer, m_display);
 
-    m_SigIntSource = wl_event_loop_add_signal(m_EventLoop, SIGINT, HandleSignal, nullptr);
-    m_SigTermSource = wl_event_loop_add_signal(m_EventLoop, SIGTERM, HandleSignal, nullptr);
+    m_sigIntSource      = wl_event_loop_add_signal(m_eventLoop, SIGINT, HandleSignal, nullptr);
+    m_sigTermSource     = wl_event_loop_add_signal(m_eventLoop, SIGTERM, HandleSignal, nullptr);
 
-    m_Allocator = wlr_allocator_autocreate(m_Backend, m_Renderer);
-    m_Compositor = wlr_compositor_create(m_Display, 5, m_Renderer);
-	m_SubCompositor = wlr_subcompositor_create(m_Display);
-	m_DataDeviceManager = wlr_data_device_manager_create(m_Display);
-    m_OutputLayout = wlr_output_layout_create(m_Display);
+    m_allocator         = wlr_allocator_autocreate(m_backend, m_renderer);
+    m_compositor        = wlr_compositor_create(m_display, 5, m_renderer);
+    m_subcompositor     = wlr_subcompositor_create(m_display);
+    m_dataDeviceManager = wlr_data_device_manager_create(m_display);
+    m_outputLayout      = wlr_output_layout_create(m_display);
 
-    m_XWayland = wlr_xwayland_create(m_Display, m_Compositor, true);
+    m_xwayland          = wlr_xwayland_create(m_display, m_compositor, true);
 
-    if (!m_Allocator) {
+    if (!m_allocator) {
         throw std::runtime_error("Failed to create allocator!");
     }
 
-    if (!m_XWayland) {
+    if (!m_xwayland) {
         Logger::Log(LogLevel::WARN, "Failed to create XWayland server!");
     }
 
-    m_Scene = wlr_scene_create();
-    m_SceneLayout = wlr_scene_attach_output_layout(m_Scene, m_OutputLayout);
+    m_scene       = wlr_scene_create();
+    m_sceneLayout = wlr_scene_attach_output_layout(m_scene, m_outputLayout);
 
-    m_XDGShell = wlr_xdg_shell_create(m_Display, 3);
+    m_xdgShell    = wlr_xdg_shell_create(m_display, 3);
 
-    m_Cursor = wlr_cursor_create();
-    wlr_cursor_attach_output_layout(m_Cursor, m_OutputLayout);
+    m_cursor      = wlr_cursor_create();
+    wlr_cursor_attach_output_layout(m_cursor, m_outputLayout);
 
-    m_XCursorManager = wlr_xcursor_manager_create(nullptr, 24);
-    wlr_xcursor_manager_load(m_XCursorManager, 1);
+    m_xcursorManager = wlr_xcursor_manager_create(nullptr, 24);
+    wlr_xcursor_manager_load(m_xcursorManager, 1);
 
-	m_Seat = wlr_seat_create(m_Display, "seat0");
+    m_seat                 = wlr_seat_create(m_display, "seat0");
 
-    m_XDGDecorationManager = wlr_xdg_decoration_manager_v1_create(m_Display);
+    m_xdgDecorationManager = wlr_xdg_decoration_manager_v1_create(m_display);
 }
 
 Feather::~Feather() {
-    if (!m_CleaningUp) {
+    if (!m_cleaningUp) {
         Cleanup();
     }
 }
 
 bool Feather::Initialize() {
-    m_ConfigManager     = std::make_unique<ConfigManager>();
-    m_InputHandler      = std::make_unique<InputHandler>();
-    m_LayoutManager     = std::make_unique<LayoutManager>();
+    m_ConfigManager = std::make_unique<ConfigManager>();
+    m_InputHandler  = std::make_unique<InputHandler>();
+    m_LayoutManager = std::make_unique<LayoutManager>();
 
-    wl_list_init(&m_Outputs);
-    wl_list_init(&m_Windows);
-    wl_list_init(&m_Pointers);
-    wl_list_init(&m_Keyboards);
+    wl_list_init(&m_outputs);
+    wl_list_init(&m_windows);
+    wl_list_init(&m_pointers);
+    wl_list_init(&m_keyboards);
 
-    m_CursorMode = CURSOR_PASSTHROUGH;
+    m_cursorMode = CURSOR_PASSTHROUGH;
 
-    AddSignal(&m_Backend->events.new_output,                    &m_NewOutput,              HandleNewOutput);
-    AddSignal(&m_XDGShell->events.new_toplevel,                 &m_NewWindow,              HandleNewWindow);
-    AddSignal(&m_Backend->events.new_input,                     &m_NewInput,               HandleNewInput);
+    AddSignal(&m_backend->events.new_output, &m_newOutput, HandleNewOutput);
+    AddSignal(&m_xdgShell->events.new_toplevel, &m_newWindow, HandleNewWindow);
+    AddSignal(&m_backend->events.new_input, &m_newInput, HandleNewInput);
 
-    AddSignal(&m_Cursor->events.motion,                         &m_CursorMotion,           HandleCursorMotion);
-    AddSignal(&m_Cursor->events.motion_absolute,                &m_CursorMotionAbsolute,   HandleCursorMotionAbsolute);
-    AddSignal(&m_Cursor->events.button,                         &m_CursorButton,           HandleCursorButton);
-    AddSignal(&m_Cursor->events.axis,                           &m_CursorAxis,             HandleCursorAxis);
-    AddSignal(&m_Cursor->events.frame,                          &m_CursorFrame,            HandleCursorFrame);
+    AddSignal(&m_cursor->events.motion, &m_cursorMotion, HandleCursorMotion);
+    AddSignal(&m_cursor->events.motion_absolute, &m_cursorMotionAbsolute, HandleCursorMotionAbsolute);
+    AddSignal(&m_cursor->events.button, &m_cursorButton, HandleCursorButton);
+    AddSignal(&m_cursor->events.axis, &m_cursorAxis, HandleCursorAxis);
+    AddSignal(&m_cursor->events.frame, &m_cursorFrame, HandleCursorFrame);
 
-    AddSignal(&m_Seat->events.request_set_cursor,               &m_RequestCursor,          SeatRequestCursor);
-    AddSignal(&m_Seat->pointer_state.events.focus_change,       &m_PointerFocusChange,     SeatPointerFocusChange);
-    AddSignal(&m_Seat->events.request_set_selection,            &m_RequestSetSelection,    SeatRequestSetSelection);
+    AddSignal(&m_seat->events.request_set_cursor, &m_requestCursor, SeatRequestCursor);
+    AddSignal(&m_seat->pointer_state.events.focus_change, &m_pointerFocusChange, SeatPointerFocusChange);
+    AddSignal(&m_seat->events.request_set_selection, &m_requestSetSelection, SeatRequestSetSelection);
 
-    const char* socket = wl_display_add_socket_auto(m_Display);
+    const char* socket = wl_display_add_socket_auto(m_display);
 
     if (!socket) {
         Logger::Log(LogLevel::CRITICAL, "Failed to ensure wayland display socket!");
 
-        wlr_backend_destroy(m_Backend);
+        wlr_backend_destroy(m_backend);
 
         return false;
     }
@@ -124,15 +123,15 @@ bool Feather::Initialize() {
     setenv("XDG_CURRENT_DESKTOP", "feather", 1);
     setenv("WAYLAND_DISPLAY", socket, 1);
 
-    if (m_XWayland) {
-        setenv("DISPLAY", m_XWayland->display_name, 1);
+    if (m_xwayland) {
+        setenv("DISPLAY", m_xwayland->display_name, 1);
     }
 
-    if (!wlr_backend_start(m_Backend)) {
+    if (!wlr_backend_start(m_backend)) {
         Logger::Log(LogLevel::CRITICAL, "Failed to start backend!");
 
-        wlr_backend_destroy(m_Backend);
-		wl_display_destroy(m_Display);
+        wlr_backend_destroy(m_backend);
+        wl_display_destroy(m_display);
 
         return false;
     }
@@ -150,130 +149,130 @@ bool Feather::Initialize() {
 void Feather::Run() {
     Logger::Log(LogLevel::INFO, "Running Feather...");
 
-    wl_display_run(m_Display);
+    wl_display_run(m_display);
 }
 
 void Feather::Stop() {
     Logger::Log(LogLevel::INFO, "Stopping Feather...");
 
-    wl_display_terminate(m_Display);
+    wl_display_terminate(m_display);
 }
 
 void Feather::Cleanup() {
     Logger::Log(LogLevel::INFO, "Exiting Feather...");
 
-    if (!m_Display) {
+    if (!m_display) {
         return;
     }
 
-    m_CleaningUp = true;
+    m_cleaningUp = true;
 
-    wl_display_destroy_clients(m_Display);
+    wl_display_destroy_clients(m_display);
 
-    wl_list_remove(&m_RequestCursor.link);
-    wl_list_remove(&m_PointerFocusChange.link);
-    wl_list_remove(&m_RequestSetSelection.link);
+    wl_list_remove(&m_requestCursor.link);
+    wl_list_remove(&m_pointerFocusChange.link);
+    wl_list_remove(&m_requestSetSelection.link);
 
-    wl_list_remove(&m_CursorMotion.link);
-    wl_list_remove(&m_CursorMotionAbsolute.link);
-    wl_list_remove(&m_CursorButton.link);
-    wl_list_remove(&m_CursorAxis.link);
-    wl_list_remove(&m_CursorFrame.link);
+    wl_list_remove(&m_cursorMotion.link);
+    wl_list_remove(&m_cursorMotionAbsolute.link);
+    wl_list_remove(&m_cursorButton.link);
+    wl_list_remove(&m_cursorAxis.link);
+    wl_list_remove(&m_cursorFrame.link);
 
-    wl_list_remove(&m_NewInput.link);
-    wl_list_remove(&m_NewWindow.link);
-    wl_list_remove(&m_NewOutput.link);
+    wl_list_remove(&m_newInput.link);
+    wl_list_remove(&m_newWindow.link);
+    wl_list_remove(&m_newOutput.link);
 
-    if (m_SigIntSource && m_SigTermSource) {
-        wl_event_source_remove(m_SigIntSource);
-        wl_event_source_remove(m_SigTermSource);
+    if (m_sigIntSource && m_sigTermSource) {
+        wl_event_source_remove(m_sigIntSource);
+        wl_event_source_remove(m_sigTermSource);
     }
 
-    if (m_XWayland) {
-        wlr_xwayland_destroy(m_XWayland);
+    if (m_xwayland) {
+        wlr_xwayland_destroy(m_xwayland);
 
-        m_XWayland = nullptr;
+        m_xwayland = nullptr;
     }
 
-    m_LayoutManager     = nullptr;
-    m_InputHandler      = nullptr;
-    m_ConfigManager     = nullptr;
+    m_LayoutManager = nullptr;
+    m_InputHandler  = nullptr;
+    m_ConfigManager = nullptr;
 
-    wlr_xcursor_manager_destroy(m_XCursorManager);
-    wlr_cursor_destroy(m_Cursor);
+    wlr_xcursor_manager_destroy(m_xcursorManager);
+    wlr_cursor_destroy(m_cursor);
 
-    wlr_scene_node_destroy(&m_Scene->tree.node);
-    wlr_allocator_destroy(m_Allocator);
-    wlr_renderer_destroy(m_Renderer);
-    wlr_backend_destroy(m_Backend);
-    wl_display_destroy(m_Display);
+    wlr_scene_node_destroy(&m_scene->tree.node);
+    wlr_allocator_destroy(m_allocator);
+    wlr_renderer_destroy(m_renderer);
+    wlr_backend_destroy(m_backend);
+    wl_display_destroy(m_display);
 }
 
 Window* Feather::FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy) {
-	wlr_scene_node* node = wlr_scene_node_at(&m_Scene->tree.node, lx, ly, sx, sy);
+    wlr_scene_node* node = wlr_scene_node_at(&m_scene->tree.node, lx, ly, sx, sy);
 
-	if (node == nullptr || node->type != WLR_SCENE_NODE_BUFFER) {
-		return nullptr;
-	}
+    if (node == nullptr || node->type != WLR_SCENE_NODE_BUFFER) {
+        return nullptr;
+    }
 
-	wlr_scene_buffer* scene_buffer = wlr_scene_buffer_from_node(node);
-	wlr_scene_surface* scene_surface = wlr_scene_surface_try_from_buffer(scene_buffer);
+    wlr_scene_buffer*  sceneBuffer  = wlr_scene_buffer_from_node(node);
+    wlr_scene_surface* sceneSurface = wlr_scene_surface_try_from_buffer(sceneBuffer);
 
-	if (!scene_surface) {
-		return nullptr;
-	}
+    if (!sceneSurface) {
+        return nullptr;
+    }
 
-	*surface = scene_surface->surface;
+    *surface             = sceneSurface->surface;
 
-	wlr_scene_tree* tree = node->parent;
+    wlr_scene_tree* tree = node->parent;
 
-	while (tree != nullptr && tree->node.data == nullptr) {
-		tree = tree->node.parent;
-	}
+    while (tree != nullptr && tree->node.data == nullptr) {
+        tree = tree->node.parent;
+    }
 
-	return static_cast<Window*>(tree->node.data);
+    return static_cast<Window*>(tree->node.data);
 }
 
 void Feather::FocusWindow(Window* window) {
-	if (window == nullptr) {
-		return;
-	}
-	
-	wlr_seat* seat = m_Seat;
-	wlr_surface* prev_surface = seat->keyboard_state.focused_surface;
-	wlr_surface* surface = window->m_XDGToplevel->base->surface;
+    if (window == nullptr) {
+        return;
+    }
 
-	if (prev_surface == surface) {
-		return;
-	}
+    wlr_seat*    seat        = m_seat;
+    wlr_surface* prevSurface = seat->keyboard_state.focused_surface;
+    wlr_surface* surface     = window->m_xdgToplevel->base->surface;
 
-	if (prev_surface) {
-		wlr_xdg_toplevel* prev_window = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
-		
-		if (prev_window != nullptr) {
-			wlr_xdg_toplevel_set_activated(prev_window, false);
-		}
-	}
+    if (prevSurface == surface) {
+        return;
+    }
 
-	wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
+    if (prevSurface) {
+        wlr_xdg_toplevel* prevWindow = wlr_xdg_toplevel_try_from_wlr_surface(prevSurface);
 
-	wlr_scene_node_raise_to_top(&window->m_SceneTree->node);
+        if (prevWindow != nullptr) {
+            wlr_xdg_toplevel_set_activated(prevWindow, false);
+        }
+    }
 
-	wl_list_remove(&window->m_Link);
-	wl_list_insert(&m_Windows, &window->m_Link);
-	
-	m_FocusedWindow = window;
-	wlr_xdg_toplevel_set_activated(window->m_XDGToplevel, true);
+    wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
 
-	if (keyboard != nullptr) {
+    wlr_scene_node_raise_to_top(&window->m_sceneTree->node);
+
+    wl_list_remove(&window->m_link);
+    wl_list_insert(&m_windows, &window->m_link);
+
+    m_focusedWindow = window;
+    wlr_xdg_toplevel_set_activated(window->m_xdgToplevel, true);
+
+    if (keyboard != nullptr) {
         wlr_seat_keyboard_notify_enter(seat, surface, keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
-	}
+    }
 }
 
 void Feather::CloseWindow(Window* window) {
-	if (window == nullptr || window->m_XDGToplevel == nullptr) {
+    if (window == nullptr || window->m_xdgToplevel == nullptr) {
         return;
     }
-    
-    wlr_xdg_toplevel_send_close(window->m_XDGToplevel);
+
+    wlr_xdg_toplevel_send_close(window->m_xdgToplevel);
 }
