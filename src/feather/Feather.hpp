@@ -65,6 +65,8 @@ class Feather {
     void                           Stop();
     void                           Cleanup();
 
+    void                           CreateXWayland();
+
     wl_display*                    m_display;
     wl_event_loop*                 m_eventLoop;
 

@@ -1,5 +1,5 @@
-#include "feather/Feather.hpp"
 #include "debug/Logger.hpp"
+#include "feather/Feather.hpp"
 
 #include <string.h>
 #include <unistd.h>

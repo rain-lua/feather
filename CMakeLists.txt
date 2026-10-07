@@ -4,6 +4,7 @@ project(feather LANGUAGES CXX)
 
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+option(XWayland "Enable XWayland support" TRUE)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -105,6 +106,18 @@ endif()
 target_compile_options(feather PRIVATE
     -Werror
 )
+
+string(ASCII 27 ESC)
+
+if(XWayland)
+    message("${ESC}[1;32m[XWayland] Setting up with XWayland support${ESC}[0m")
+
+    target_compile_definitions(feather PRIVATE
+        XWAYLAND
+    )
+else()
+    message("${ESC}[1;31m[XWayland] Setting up without XWayland support${ESC}[0m")
+endif()
 
 target_include_directories(feather PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/include"

@@ -52,15 +52,11 @@ Feather::Feather() {
     m_dataDeviceManager = wlr_data_device_manager_create(m_display);
     m_outputLayout      = wlr_output_layout_create(m_display);
 
-    m_xwayland          = wlr_xwayland_create(m_display, m_compositor, true);
-
     if (!m_allocator) {
         throw std::runtime_error("Failed to create allocator!");
     }
 
-    if (!m_xwayland) {
-        Logger::Log(LogLevel::WARN, "Failed to create XWayland server!");
-    }
+    CreateXWayland();
 
     m_scene       = wlr_scene_create();
     m_sceneLayout = wlr_scene_attach_output_layout(m_scene, m_outputLayout);
@@ -206,6 +202,16 @@ void Feather::Cleanup() {
     wlr_renderer_destroy(m_renderer);
     wlr_backend_destroy(m_backend);
     wl_display_destroy(m_display);
+}
+
+void Feather::CreateXWayland() {
+#ifdef XWAYLAND
+    m_xwayland = wlr_xwayland_create(m_display, m_compositor, true);
+
+    if (!m_xwayland) {
+        Logger::Log(LogLevel::WARN, "Failed to create XWayland server!");
+    }
+#endif
 }
 
 Window* Feather::FindWindowAt(double lx, double ly, wlr_surface** surface, double* sx, double* sy) {
