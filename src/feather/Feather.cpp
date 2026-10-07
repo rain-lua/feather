@@ -1,6 +1,6 @@
 #include "Feather.hpp"
 
-#include "../../debug/Logger.hpp"
+#include "../debug/Logger.hpp"
 
 #include "./hooks/Devices.hpp"
 #include "./hooks/Monitors.hpp"

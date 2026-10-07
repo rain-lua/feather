@@ -1,8 +1,7 @@
 #include "InputHandler.hpp"
 
-#include "../../../debug/Logger.hpp"
+#include "../../debug/Logger.hpp"
 #include "../../feather/Feather.hpp"
-#include "../../util/Util.hpp"
 
 void InputHandler::SeatRequestCursor(wl_listener* listener, void* data) {
     wlr_seat_pointer_request_set_cursor_event* event          = static_cast<wlr_seat_pointer_request_set_cursor_event*>(data);
@@ -109,7 +108,7 @@ void InputHandler::HandleKeyboardKey(void* owner, void* data) {
     wlr_keyboard_key_event* event    = static_cast<wlr_keyboard_key_event*>(data);
 
     wlr_seat*               seat     = g_Feather->m_seat;
-    uint32_t                keycode  = ToXKBKeycode(event->keycode);
+    uint32_t                keycode  = event->keycode + 8;
 
     const xkb_keysym_t*     syms;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../config/ConfigManager.hpp"
-#include "../../include/Defines.hpp"
+#include "../config/ConfigManager.hpp"
+#include "../include/Defines.hpp"
 
 #include "./classes/Listener.hpp"
 #include "./handlers/InputHandler.hpp"

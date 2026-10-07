@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../include/Defines.hpp"
+#include "../../include/Defines.hpp"
 
 void HandleNewInput(wl_listener* listener, void* data);
 

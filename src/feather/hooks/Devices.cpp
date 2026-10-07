@@ -1,6 +1,6 @@
 #include "Devices.hpp"
 
-#include "../../../debug/Logger.hpp"
+#include "../../debug/Logger.hpp"
 #include "../../feather/Feather.hpp"
 
 void HandleNewInput(wl_listener* listener, void* data) {

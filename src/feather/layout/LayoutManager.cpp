@@ -1,6 +1,6 @@
 #include "LayoutManager.hpp"
 
-#include "../../../debug/Logger.hpp"
+#include "../../debug/Logger.hpp"
 #include "../../feather/Feather.hpp"
 
 LayoutManager::LayoutManager() {

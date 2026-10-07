@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../include/Defines.hpp"
+#include "../../include/Defines.hpp"
 
 void HandleNewWindow(wl_listener* listener, void* data);
 void HandleWindowMap(void* owner, void* data);
